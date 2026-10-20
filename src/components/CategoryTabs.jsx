@@ -1,71 +1,137 @@
-import React from 'react';
+import React, { useRef, useEffect } from 'react';
 import { 
+  TabCityOSIcon,
+  TabShopIcon,
+  TabInstamartBasketIcon,
   TabBurgerIcon, 
-  TabInstamartBasketIcon, 
-  TabDineoutClocheIcon, 
-  TabScenesDiscoBallIcon 
+  TabServiceIcon,
+  TabRideIcon,
+  TabTravelIcon,
+  TabRentIcon
 } from './CustomIcons';
 
 export const CategoryTabs = ({ 
   activeTab = 'food', 
   onTabChange, 
-  theme = 'dark' // 'dark' (Food), 'white' (Instamart), 'cream' (Dineout), 'black' (Scenes)
+  theme = 'dark' // 'dark', 'white', 'cream', 'black'
 }) => {
-  // Badges based on active page:
-  // Food: Instamart shows "12 mins"
-  // Dineout & Scenes: Instamart shows "5 Mins"
-  // Instamart: no badge
-  const getInstamartBadge = () => {
-    if (activeTab === 'instamart') return null;
-    if (activeTab === 'food') return '12 mins';
-    return '5 Mins';
-  };
+  const scrollRef = useRef(null);
+  const tabRefs = useRef({});
 
+  // 8 Renamed Header Tabs: cityOS, shop, grocery, food, service, ride, travel, rent
   const tabs = [
-    { id: 'food', label: 'Food', icon: TabBurgerIcon },
-    { id: 'instamart', label: 'Instamart', icon: TabInstamartBasketIcon, badge: getInstamartBadge() },
-    { id: 'dineout', label: 'Dineout', icon: TabDineoutClocheIcon },
-    { id: 'scenes', label: 'Scenes', icon: TabScenesDiscoBallIcon, hasMusicNotes: true }
+    { id: 'cityos', label: 'cityOS', icon: TabCityOSIcon },
+    { id: 'shop', label: 'shop', icon: TabShopIcon, badge: 'Sale' },
+    { id: 'grocery', label: 'grocery', icon: TabInstamartBasketIcon, badge: '10 mins' },
+    { id: 'food', label: 'food', icon: TabBurgerIcon },
+    { id: 'service', label: 'service', icon: TabServiceIcon },
+    { id: 'ride', label: 'ride', icon: TabRideIcon, badge: '2 mins' },
+    { id: 'travel', label: 'travel', icon: TabTravelIcon },
+    { id: 'rent', label: 'rent', icon: TabRentIcon }
   ];
 
-  // Specific single uniform border color, fills and text styling for each theme
+  // Specific single uniform border color, fills, and glow for each theme/tab
   const getHeaderStyles = () => {
+    if (theme === 'white') {
+      return {
+        activeFill: '#ffffff',
+        activeBorder: '#475569',
+        activeGlow: 'none',
+        activeText: 'text-slate-900 font-extrabold',
+        inactiveFill: '#f8fafc',
+        inactiveBorder: '#cbd5e1',
+        inactiveText: 'text-slate-500 font-medium'
+      };
+    }
+
+    if (theme === 'cream') {
+      return {
+        activeFill: '#faf7ee',
+        activeBorder: '#2d5122',
+        activeGlow: 'none',
+        activeText: 'text-[#23421b] font-extrabold',
+        inactiveFill: '#e5dfd2',
+        inactiveBorder: '#d4ccbd',
+        inactiveText: 'text-[#667060] font-medium'
+      };
+    }
+
     switch (activeTab) {
-      case 'instamart':
+      case 'cityos':
         return {
-          activeFill: '#ffffff',
-          activeBorder: '#475569', // Crisp slate grey border line
-          activeGlow: 'none',
-          activeText: 'text-slate-900 font-extrabold',
-          inactiveFill: '#f8fafc',
-          inactiveBorder: '#cbd5e1',
-          inactiveText: 'text-slate-500 font-medium'
-        };
-      case 'dineout':
-        return {
-          activeFill: '#faf7ee',
-          activeBorder: '#2d5122', // Rich dark olive green border line
-          activeGlow: 'none',
-          activeText: 'text-[#23421b] font-extrabold',
-          inactiveFill: '#e5dfd2',
-          inactiveBorder: '#d4ccbd',
-          inactiveText: 'text-[#667060] font-medium'
-        };
-      case 'scenes':
-        return {
-          activeFill: '#09090b',
-          activeBorder: '#ffffff', // Crisp pure white border line
-          activeGlow: 'drop-shadow(0 0 3px rgba(255, 255, 255, 0.45))',
+          activeFill: '#0d051f',
+          activeBorder: '#60a5fa',
+          activeGlow: 'drop-shadow(0 0 3px rgba(96, 165, 250, 0.45))',
           activeText: 'text-white font-extrabold',
-          inactiveFill: '#18181b',
+          inactiveFill: 'rgba(255, 255, 255, 0.05)',
           inactiveBorder: 'rgba(255, 255, 255, 0.1)',
-          inactiveText: 'text-[#9ca3af] font-medium'
+          inactiveText: 'text-[#9d93b1] font-medium'
+        };
+      case 'shop':
+        return {
+          activeFill: '#0d051f',
+          activeBorder: '#fb7185',
+          activeGlow: 'drop-shadow(0 0 3px rgba(251, 113, 133, 0.45))',
+          activeText: 'text-white font-extrabold',
+          inactiveFill: 'rgba(255, 255, 255, 0.05)',
+          inactiveBorder: 'rgba(255, 255, 255, 0.1)',
+          inactiveText: 'text-[#9d93b1] font-medium'
+        };
+      case 'grocery':
+        return {
+          activeFill: '#0d051f',
+          activeBorder: '#34d399',
+          activeGlow: 'drop-shadow(0 0 3px rgba(52, 211, 153, 0.45))',
+          activeText: 'text-white font-extrabold',
+          inactiveFill: 'rgba(255, 255, 255, 0.05)',
+          inactiveBorder: 'rgba(255, 255, 255, 0.1)',
+          inactiveText: 'text-[#9d93b1] font-medium'
+        };
+      case 'service':
+        return {
+          activeFill: '#0d051f',
+          activeBorder: '#38bdf8',
+          activeGlow: 'drop-shadow(0 0 3px rgba(56, 189, 248, 0.45))',
+          activeText: 'text-white font-extrabold',
+          inactiveFill: 'rgba(255, 255, 255, 0.05)',
+          inactiveBorder: 'rgba(255, 255, 255, 0.1)',
+          inactiveText: 'text-[#9d93b1] font-medium'
+        };
+      case 'ride':
+        return {
+          activeFill: '#0d051f',
+          activeBorder: '#facc15',
+          activeGlow: 'drop-shadow(0 0 3px rgba(250, 204, 21, 0.45))',
+          activeText: 'text-white font-extrabold',
+          inactiveFill: 'rgba(255, 255, 255, 0.05)',
+          inactiveBorder: 'rgba(255, 255, 255, 0.1)',
+          inactiveText: 'text-[#9d93b1] font-medium'
+        };
+      case 'travel':
+        return {
+          activeFill: '#0d051f',
+          activeBorder: '#22d3ee',
+          activeGlow: 'drop-shadow(0 0 3px rgba(34, 211, 238, 0.45))',
+          activeText: 'text-white font-extrabold',
+          inactiveFill: 'rgba(255, 255, 255, 0.05)',
+          inactiveBorder: 'rgba(255, 255, 255, 0.1)',
+          inactiveText: 'text-[#9d93b1] font-medium'
+        };
+      case 'rent':
+        return {
+          activeFill: '#0d051f',
+          activeBorder: '#4ade80',
+          activeGlow: 'drop-shadow(0 0 3px rgba(74, 222, 128, 0.45))',
+          activeText: 'text-white font-extrabold',
+          inactiveFill: 'rgba(255, 255, 255, 0.05)',
+          inactiveBorder: 'rgba(255, 255, 255, 0.1)',
+          inactiveText: 'text-[#9d93b1] font-medium'
         };
       case 'food':
       default:
         return {
           activeFill: '#0d051f',
-          activeBorder: '#a782fc', // Crisp lavender purple border line
+          activeBorder: '#a782fc',
           activeGlow: 'drop-shadow(0 0 3px rgba(167, 130, 252, 0.45))',
           activeText: 'text-white font-extrabold',
           inactiveFill: 'rgba(255, 255, 255, 0.05)',
@@ -77,51 +143,49 @@ export const CategoryTabs = ({
 
   const styles = getHeaderStyles();
 
-  // Exactly matching slot parameters across 400px width (100px per tab)
-  const tabIndexMap = { food: 0, instamart: 1, dineout: 2, scenes: 3 };
-  const activeIdx = tabIndexMap[activeTab] ?? 0;
-  const startX = activeIdx * 100;
-  const endX = startX + 100;
-  const activeCx = startX + 50;
+  // 8 Slot Coordinates: slotWidth = 94, totalWidth = 752
+  const slotWidth = 94;
+  const totalWidth = tabs.length * slotWidth; // 752
+  const activeIdx = Math.max(0, tabs.findIndex(t => t.id === activeTab));
+  const startX = activeIdx * slotWidth;
+  const endX = startX + slotWidth;
+  const activeCx = startX + slotWidth / 2;
 
-  // BASELINE AT Y = 76 (seamless connection to the below section)
-  // UPPER PROFILE (cx - 46, 66) -> (cx - 38, 18) -> (cx - 24, 6) -> (cx + 24, 6) -> (cx + 38, 18) -> (cx + 46, 66)
-  // Perfectly identical across ALL 4 buttons!
-
-  // Inactive button path generator for any tab index
+  // Inactive button path generator for any slot index
   const getInactiveButtonPath = (idx) => {
-    const cx = idx * 100 + 50;
+    const sX = idx * slotWidth;
+    const cx = sX + slotWidth / 2;
     return `
-      M ${cx - 43},76 
-      L ${cx + 43},76 
-      C ${cx + 45},76 ${cx + 46},72 ${cx + 46},66 
-      L ${cx + 38},18 
-      C ${cx + 34},10 ${cx + 30},6 ${cx + 24},6 
-      L ${cx - 24},6 
-      C ${cx - 30},6 ${cx - 34},10 ${cx - 38},18 
-      L ${cx - 46},66 
-      C ${cx - 46},72 ${cx - 45},76 ${cx - 43},76 
+      M ${cx - 39},76 
+      L ${cx + 39},76 
+      C ${cx + 41},76 ${cx + 42},72 ${cx + 42},66 
+      L ${cx + 34},18 
+      C ${cx + 30},10 ${cx + 26},6 ${cx + 22},6 
+      L ${cx - 22},6 
+      C ${cx - 26},6 ${cx - 30},10 ${cx - 34},18 
+      L ${cx - 42},66 
+      C ${cx - 42},72 ${cx - 41},76 ${cx - 39},76 
       Z
     `;
   };
 
   // Active button upper arch contour
   const archContour = `
-    C ${startX + 1},76 ${startX + 3},71 ${startX + 4},66 
-    L ${activeCx - 38},18 
-    C ${activeCx - 34},10 ${activeCx - 30},6 ${activeCx - 24},6 
-    L ${activeCx + 24},6 
-    C ${activeCx + 30},6 ${activeCx + 34},10 ${activeCx + 38},18 
-    L ${endX - 4},66 
+    C ${startX + 1},76 ${startX + 3},71 ${startX + 5},66 
+    L ${activeCx - 34},18 
+    C ${activeCx - 30},10 ${activeCx - 26},6 ${activeCx - 22},6 
+    L ${activeCx + 22},6 
+    C ${activeCx + 26},6 ${activeCx + 30},10 ${activeCx + 34},18 
+    L ${endX - 5},66 
     C ${endX - 3},71 ${endX - 1},76 ${endX},76
   `;
 
-  // 1. Continuous single-color border line from far-left (0,76) to far-right (400,76)
+  // 1. Continuous single-color border line spanning all 8 tabs (0 to totalWidth)
   const leftBaseline = startX > 0 ? `M 0,76 L ${startX},76` : `M 0,76`;
-  const rightBaseline = endX < 400 ? `L 400,76` : ``;
+  const rightBaseline = endX < totalWidth ? `L ${totalWidth},76` : ``;
   const continuousBorderLine = `${leftBaseline} ${archContour} ${rightBaseline}`;
 
-  // 2. Active button fill region seamlessly merging down into the below container
+  // 2. Active button fill region seamlessly merging down into below section
   const activeFillPath = `
     M ${startX},76 
     ${archContour}
@@ -129,6 +193,18 @@ export const CategoryTabs = ({
     L ${startX},80 
     Z
   `;
+
+  // Smooth auto-scroll active button into view
+  useEffect(() => {
+    const activeEl = tabRefs.current[activeTab];
+    if (activeEl && scrollRef.current) {
+      activeEl.scrollIntoView({
+        behavior: 'smooth',
+        inline: 'center',
+        block: 'nearest'
+      });
+    }
+  }, [activeTab]);
 
   const handleTabClick = (tabId) => {
     if (onTabChange) {
@@ -138,123 +214,128 @@ export const CategoryTabs = ({
 
   return (
     <div className="w-full select-none">
-      {/* 4 Tabs Container with Same Size and Shape */}
-      <div className="relative w-full h-[80px]">
-        
-        {/* LAYER 1: Inactive Buttons Base Cards (viewBox 0 0 400 80)
-            - Renders inactive button cards with identical trapezoidal shape and size
-        */}
-        <svg
-          viewBox="0 0 400 80"
-          preserveAspectRatio="none"
-          className="absolute inset-0 w-full h-full pointer-events-none z-10"
+      {/* Horizontal Scrollable Wrapper without Scrollbar */}
+      <div 
+        ref={scrollRef}
+        className="w-full overflow-x-auto no-scrollbar scroll-smooth"
+        style={{ WebkitOverflowScrolling: 'touch' }}
+      >
+        <div 
+          className="relative h-[80px]"
+          style={{ width: `${totalWidth}px`, minWidth: `${totalWidth}px` }}
         >
-          {tabs.map((tab, idx) => {
-            if (tab.id === activeTab) return null;
-            return (
-              <path
-                key={tab.id}
-                d={getInactiveButtonPath(idx)}
-                fill={styles.inactiveFill}
-                stroke={styles.inactiveBorder}
-                strokeWidth="1.2"
-              />
-            );
-          })}
-        </svg>
+          
+          {/* LAYER 1: Inactive Buttons Base Cards (viewBox 0 0 752 80)
+              - Renders inactive button cards with identical trapezoidal shape and size
+          */}
+          <svg
+            viewBox={`0 0 ${totalWidth} 80`}
+            preserveAspectRatio="none"
+            className="absolute inset-0 w-full h-full pointer-events-none z-10"
+          >
+            {tabs.map((tab, idx) => {
+              if (tab.id === activeTab) return null;
+              return (
+                <path
+                  key={tab.id}
+                  d={getInactiveButtonPath(idx)}
+                  fill={styles.inactiveFill}
+                  stroke={styles.inactiveBorder}
+                  strokeWidth="1.2"
+                />
+              );
+            })}
+          </svg>
 
-        {/* LAYER 2: Active Button Fill Layer (z-20)
-            - Renders the active button background fill seamlessly merging into below container
-        */}
-        <svg
-          viewBox="0 0 400 80"
-          preserveAspectRatio="none"
-          className="absolute inset-0 w-full h-full pointer-events-none z-20"
-        >
-          <path
-            d={activeFillPath}
-            fill={styles.activeFill}
-          />
+          {/* LAYER 2: Active Button Fill Layer (z-20)
+              - Renders the active button background fill seamlessly merging into below container
+          */}
+          <svg
+            viewBox={`0 0 ${totalWidth} 80`}
+            preserveAspectRatio="none"
+            className="absolute inset-0 w-full h-full pointer-events-none z-20"
+          >
+            <path
+              d={activeFillPath}
+              fill={styles.activeFill}
+            />
 
-          {/* Ambient sheen glow for Food & Scenes active tabs */}
-          {activeTab === 'food' && (
-            <ellipse cx="50" cy="24" rx="26" ry="12" fill="#8e65e6" fillOpacity="0.25" />
-          )}
-          {activeTab === 'scenes' && (
-            <ellipse cx="350" cy="24" rx="26" ry="12" fill="#ffffff" fillOpacity="0.18" />
-          )}
-        </svg>
+            {/* Ambient sheen glow for active tab */}
+            <ellipse 
+              cx={activeCx} 
+              cy="24" 
+              rx="24" 
+              ry="12" 
+              fill={styles.activeBorder} 
+              fillOpacity="0.22" 
+            />
+          </svg>
 
-        {/* LAYER 3: FOREGROUND THE FORWARD ACTIVE BORDER LINE (z-30)
-            - Traces from far-left (0,76) to far-right (400,76)
-            - Exactly matches the active button contour with zero mismatch
-            - Positioned FORWARD so it is crisp and never hidden below any button!
-        */}
-        <svg
-          viewBox="0 0 400 80"
-          preserveAspectRatio="none"
-          className="absolute inset-0 w-full h-full pointer-events-none z-30"
-          style={{ filter: styles.activeGlow }}
-        >
-          <path
-            d={continuousBorderLine}
-            fill="none"
-            stroke={styles.activeBorder}
-            strokeWidth="2.2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
+          {/* LAYER 3: FOREGROUND THE FORWARD ACTIVE BORDER LINE (z-30)
+              - Traces from far-left (0,76) to far-right (752,76)
+              - Exactly matches the active button contour with zero mismatch
+              - Positioned FORWARD so it is crisp and never hidden below any button!
+          */}
+          <svg
+            viewBox={`0 0 ${totalWidth} 80`}
+            preserveAspectRatio="none"
+            className="absolute inset-0 w-full h-full pointer-events-none z-30"
+            style={{ filter: styles.activeGlow }}
+          >
+            <path
+              d={continuousBorderLine}
+              fill="none"
+              stroke={styles.activeBorder}
+              strokeWidth="2.2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
 
-        {/* LAYER 4: Interactive Controls Layer (z-40)
-            - Exactly aligned across 4 equal columns
-            - Clickable buttons with icons, labels, badges, and musical notes
-        */}
-        <div className="grid grid-cols-4 relative z-40 w-full h-full">
-          {tabs.map((tab) => {
-            const isActive = activeTab === tab.id;
-            const Icon = tab.icon;
+          {/* LAYER 4: Interactive Controls Layer (z-40)
+              - Exactly aligned across 8 equal columns (each 94px)
+              - Clickable buttons with icons, labels, and badges
+          */}
+          <div className="flex relative z-40 w-full h-full">
+            {tabs.map((tab) => {
+              const isActive = activeTab === tab.id;
+              const Icon = tab.icon;
 
-            return (
-              <button
-                key={tab.id}
-                type="button"
-                onClick={() => handleTabClick(tab.id)}
-                className="relative flex flex-col items-center justify-end pb-2 cursor-pointer group h-full w-full p-0 bg-transparent border-none outline-none select-none transition-transform active:scale-[0.98]"
-                aria-label={`Switch to ${tab.label}`}
-              >
-                {/* Icon & Label */}
-                <div className="flex flex-col items-center pointer-events-none">
-                  <div className="h-9 flex items-center justify-center relative mb-0.5">
-                    {/* Musical notes for Scenes */}
-                    {tab.hasMusicNotes && (
-                      <>
-                        <span className="absolute -left-3 top-0 text-[#ec4899] text-xs font-bold animate-pulse">♪</span>
-                        <span className="absolute -right-3 top-1 text-[#f472b6] text-xs font-bold animate-pulse">♫</span>
-                      </>
-                    )}
+              return (
+                <button
+                  key={tab.id}
+                  ref={(el) => { tabRefs.current[tab.id] = el; }}
+                  type="button"
+                  onClick={() => handleTabClick(tab.id)}
+                  style={{ width: `${slotWidth}px` }}
+                  className="shrink-0 relative flex flex-col items-center justify-end pb-2 cursor-pointer group h-full p-0 bg-transparent border-none outline-none select-none transition-transform active:scale-[0.98]"
+                  aria-label={`Switch to ${tab.label}`}
+                >
+                  {/* Icon & Label */}
+                  <div className="flex flex-col items-center pointer-events-none">
+                    <div className="h-9 flex items-center justify-center relative mb-0.5">
+                      <Icon 
+                        size={tab.id === 'food' ? 35 : 33} 
+                        className={isActive ? 'scale-105 transition-transform' : 'opacity-90 group-hover:opacity-100 transition-opacity'} 
+                      />
 
-                    <Icon 
-                      size={tab.id === 'food' ? 35 : tab.id === 'scenes' ? 33 : 34} 
-                      className={isActive ? 'scale-105 transition-transform' : 'opacity-90 group-hover:opacity-100 transition-opacity'} 
-                    />
+                      {tab.badge && (
+                        <span className="absolute -bottom-1.5 px-1.5 py-[0.5px] bg-[#1668e3] text-white text-[9px] font-black rounded-md shadow-md tracking-tight whitespace-nowrap">
+                          {tab.badge}
+                        </span>
+                      )}
+                    </div>
 
-                    {tab.badge && (
-                      <span className="absolute -bottom-1.5 px-1.5 py-[0.5px] bg-[#1668e3] text-white text-[9px] font-black rounded-md shadow-md tracking-tight whitespace-nowrap">
-                        {tab.badge}
-                      </span>
-                    )}
+                    <span className={`text-[12px] tracking-tight leading-none transition-colors ${isActive ? styles.activeText : styles.inactiveText}`}>
+                      {tab.label}
+                    </span>
                   </div>
+                </button>
+              );
+            })}
+          </div>
 
-                  <span className={`text-[12.5px] tracking-tight leading-none transition-colors ${isActive ? styles.activeText : styles.inactiveText}`}>
-                    {tab.label}
-                  </span>
-                </div>
-              </button>
-            );
-          })}
         </div>
-
       </div>
     </div>
   );

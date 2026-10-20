@@ -212,6 +212,176 @@ export const TabScenesDiscoBallIcon = ({ size = 38, className = "" }) => (
   </svg>
 );
 
+// 3D CityOS Hex Shield & Skyline Icon
+export const TabCityOSIcon = ({ size = 36, className = "" }) => (
+  <svg width={size} height={size} viewBox="0 0 54 54" fill="none" className={className}>
+    <defs>
+      <linearGradient id="cityShield" x1="27" y1="8" x2="27" y2="46" gradientUnits="userSpaceOnUse">
+        <stop stopColor="#38BDF8" />
+        <stop offset="0.5" stopColor="#6366F1" />
+        <stop offset="1" stopColor="#8B5CF6" />
+      </linearGradient>
+      <linearGradient id="cityTowerGrad" x1="27" y1="18" x2="27" y2="38" gradientUnits="userSpaceOnUse">
+        <stop stopColor="#FFFFFF" />
+        <stop offset="1" stopColor="#E0E7FF" />
+      </linearGradient>
+    </defs>
+    <ellipse cx="27" cy="45" rx="15" ry="3" fill="#000000" fillOpacity="0.35" />
+    {/* Hexagon Shield */}
+    <path d="M27 8L42 16V34L27 43L12 34V16L27 8Z" fill="url(#cityShield)" />
+    <path d="M27 10L40 17V33L27 41L14 33V17L27 10Z" stroke="#FFFFFF" strokeOpacity="0.4" strokeWidth="1" />
+    {/* Stylized Modern Towers inside */}
+    <rect x="23" y="17" width="8" height="20" rx="1.5" fill="url(#cityTowerGrad)" />
+    <rect x="17" y="23" width="5" height="14" rx="1" fill="#C7D2FE" />
+    <rect x="32" y="21" width="5" height="16" rx="1" fill="#C7D2FE" />
+    {/* Windows and Antenna */}
+    <line x1="27" y1="13" x2="27" y2="17" stroke="#FEF08A" strokeWidth="2" strokeLinecap="round" />
+    <circle cx="27" cy="13" r="1.5" fill="#FBBF24" />
+    <rect x="25" y="20" width="1.5" height="2" fill="#6366F1" />
+    <rect x="27.5" y="20" width="1.5" height="2" fill="#6366F1" />
+    <rect x="25" y="24" width="1.5" height="2" fill="#6366F1" />
+    <rect x="27.5" y="24" width="1.5" height="2" fill="#6366F1" />
+  </svg>
+);
+
+// 3D Shop Bag with Sparkles
+export const TabShopIcon = ({ size = 36, className = "" }) => (
+  <svg width={size} height={size} viewBox="0 0 54 54" fill="none" className={className}>
+    <defs>
+      <linearGradient id="shopBagGrad" x1="27" y1="18" x2="27" y2="44" gradientUnits="userSpaceOnUse">
+        <stop stopColor="#FB7185" />
+        <stop offset="0.5" stopColor="#E11D48" />
+        <stop offset="1" stopColor="#9F1239" />
+      </linearGradient>
+    </defs>
+    <ellipse cx="27" cy="45" rx="14" ry="3" fill="#000000" fillOpacity="0.35" />
+    {/* Bag Handles */}
+    <path d="M21 21V15C21 11.6863 23.6863 9 27 9C30.3137 9 33 11.6863 33 15V21" stroke="#FDE047" strokeWidth="2.5" strokeLinecap="round" />
+    {/* Bag Body */}
+    <path d="M14 20L17 43C17.2 44.2 18.2 45 19.4 45H34.6C35.8 45 36.8 44.2 37 43L40 20H14Z" fill="url(#shopBagGrad)" />
+    {/* Glossy Reflection */}
+    <path d="M17 22L19 41C19.1 41.8 19.8 42.4 20.6 42.4H22.5L20 22H17Z" fill="#FFFFFF" fillOpacity="0.3" />
+    {/* Starburst badge */}
+    <circle cx="27" cy="30" r="5" fill="#FEF08A" />
+    <path d="M27 27L28 29.5L30.5 30L28 30.5L27 33L26 30.5L23.5 30L26 29.5L27 27Z" fill="#B45309" />
+  </svg>
+);
+
+// 3D Service / Tools Icon
+export const TabServiceIcon = ({ size = 36, className = "" }) => (
+  <svg width={size} height={size} viewBox="0 0 54 54" fill="none" className={className}>
+    <defs>
+      <linearGradient id="wrenchGrad" x1="16" y1="12" x2="38" y2="38" gradientUnits="userSpaceOnUse">
+        <stop stopColor="#94A3B8" />
+        <stop offset="0.5" stopColor="#475569" />
+        <stop offset="1" stopColor="#1E293B" />
+      </linearGradient>
+      <linearGradient id="gearGrad" x1="27" y1="14" x2="27" y2="40" gradientUnits="userSpaceOnUse">
+        <stop stopColor="#38BDF8" />
+        <stop offset="1" stopColor="#0284C7" />
+      </linearGradient>
+    </defs>
+    <ellipse cx="27" cy="45" rx="14" ry="3" fill="#000000" fillOpacity="0.35" />
+    {/* Gear Base */}
+    <circle cx="27" cy="27" r="14" fill="url(#gearGrad)" />
+    <circle cx="27" cy="27" r="5.5" fill="#0B132B" />
+    {/* Chrome Wrench crossed */}
+    <path d="M19 15L23 19L36 32C37.5 33.5 37.5 35.5 36 37C34.5 38.5 32.5 38.5 31 37L18 24L14 20C13 18.5 13 16.5 14.5 15C16 13.5 17.5 13.5 19 15Z" fill="url(#wrenchGrad)" />
+    <circle cx="16" cy="17" r="2" fill="#E2E8F0" />
+    {/* Golden Sparkles */}
+    <path d="M37 13L38 15.5L40.5 16.5L38 17.5L37 20L36 17.5L33.5 16.5L36 15.5L37 13Z" fill="#FBBF24" />
+  </svg>
+);
+
+// 3D Ride / City Cab Icon
+export const TabRideIcon = ({ size = 36, className = "" }) => (
+  <svg width={size} height={size} viewBox="0 0 54 54" fill="none" className={className}>
+    <defs>
+      <linearGradient id="cabBody" x1="27" y1="18" x2="27" y2="40" gradientUnits="userSpaceOnUse">
+        <stop stopColor="#FDE047" />
+        <stop offset="0.6" stopColor="#F59E0B" />
+        <stop offset="1" stopColor="#D97706" />
+      </linearGradient>
+    </defs>
+    {/* Shadow */}
+    <ellipse cx="27" cy="44" rx="17" ry="3.5" fill="#000000" fillOpacity="0.4" />
+    {/* Taxi Sign on top */}
+    <rect x="23" y="15" width="8" height="4" rx="1" fill="#FFFFFF" stroke="#000000" strokeWidth="0.8" />
+    <rect x="24.5" y="16" width="5" height="2" fill="#F59E0B" />
+    {/* Car Roof & Cabin */}
+    <path d="M18 24L21 19H33L36 24H18Z" fill="#0F172A" />
+    {/* Windshield Sheen */}
+    <path d="M22 20H32L34.5 24H19.5L22 20Z" fill="#38BDF8" fillOpacity="0.75" />
+    {/* Car Main Body */}
+    <rect x="11" y="24" width="32" height="12" rx="4" fill="url(#cabBody)" />
+    {/* Checkered side strip */}
+    <rect x="11" y="29" width="32" height="2.5" fill="#000000" fillOpacity="0.2" />
+    {/* Headlights */}
+    <circle cx="14" cy="30" r="2" fill="#FEF08A" />
+    <circle cx="40" cy="30" r="2" fill="#FEF08A" />
+    {/* Wheels */}
+    <circle cx="17" cy="39" r="4.5" fill="#1E293B" />
+    <circle cx="17" cy="39" r="2" fill="#94A3B8" />
+    <circle cx="37" cy="39" r="4.5" fill="#1E293B" />
+    <circle cx="37" cy="39" r="2" fill="#94A3B8" />
+  </svg>
+);
+
+// 3D Travel / Airplane & Suitcase Icon
+export const TabTravelIcon = ({ size = 36, className = "" }) => (
+  <svg width={size} height={size} viewBox="0 0 54 54" fill="none" className={className}>
+    <defs>
+      <linearGradient id="planeGrad" x1="16" y1="12" x2="38" y2="38" gradientUnits="userSpaceOnUse">
+        <stop stopColor="#67E8F9" />
+        <stop offset="0.6" stopColor="#06B6D4" />
+        <stop offset="1" stopColor="#0E7490" />
+      </linearGradient>
+    </defs>
+    <ellipse cx="27" cy="45" rx="14" ry="3" fill="#000000" fillOpacity="0.35" />
+    {/* Jet Airplane Climbing */}
+    <path d="M27 10L31 20L41 24L39 27L31 25L29 36L33 39V41L27 40L21 41V39L25 36L23 25L15 27L13 24L23 20L27 10Z" fill="url(#planeGrad)" />
+    {/* Cockpit Glass */}
+    <ellipse cx="27" cy="15" rx="1.5" ry="2.5" fill="#FFFFFF" fillOpacity="0.9" />
+    {/* Wing Contrail / Swoosh */}
+    <path d="M12 36C18 34 36 34 42 36" stroke="#E0F2FE" strokeWidth="1.5" strokeLinecap="round" strokeDasharray="2 3" />
+  </svg>
+);
+
+// 3D Rent / Modern Apartment & Key Icon
+export const TabRentIcon = ({ size = 36, className = "" }) => (
+  <svg width={size} height={size} viewBox="0 0 54 54" fill="none" className={className}>
+    <defs>
+      <linearGradient id="buildingGrad" x1="22" y1="14" x2="22" y2="42" gradientUnits="userSpaceOnUse">
+        <stop stopColor="#34D399" />
+        <stop offset="0.7" stopColor="#059669" />
+        <stop offset="1" stopColor="#065F46" />
+      </linearGradient>
+      <linearGradient id="keyGrad" x1="34" y1="20" x2="42" y2="38" gradientUnits="userSpaceOnUse">
+        <stop stopColor="#FDE047" />
+        <stop offset="1" stopColor="#D97706" />
+      </linearGradient>
+    </defs>
+    <ellipse cx="27" cy="45" rx="15" ry="3" fill="#000000" fillOpacity="0.35" />
+    {/* Apartment Building */}
+    <rect x="13" y="16" width="18" height="26" rx="2" fill="url(#buildingGrad)" />
+    {/* Windows */}
+    <rect x="16" y="20" width="3" height="3" rx="0.5" fill="#FEF3C7" />
+    <rect x="21" y="20" width="3" height="3" rx="0.5" fill="#FEF3C7" />
+    <rect x="26" y="20" width="3" height="3" rx="0.5" fill="#FEF3C7" />
+    <rect x="16" y="26" width="3" height="3" rx="0.5" fill="#FEF3C7" />
+    <rect x="21" y="26" width="3" height="3" rx="0.5" fill="#FEF3C7" />
+    <rect x="26" y="26" width="3" height="3" rx="0.5" fill="#FEF3C7" />
+    <rect x="16" y="32" width="3" height="3" rx="0.5" fill="#FEF3C7" />
+    <rect x="21" y="32" width="3" height="3" rx="0.5" fill="#FEF3C7" />
+    <rect x="26" y="32" width="3" height="3" rx="0.5" fill="#FEF3C7" />
+    {/* Entrance Door */}
+    <rect x="20" y="37" width="4" height="5" rx="0.5" fill="#064E3B" />
+    {/* Golden Key floating right */}
+    <circle cx="38" cy="24" r="5" fill="none" stroke="url(#keyGrad)" strokeWidth="2.5" />
+    <path d="M38 29V39L41 39M38 35L40 35" stroke="url(#keyGrad)" strokeWidth="2.5" strokeLinecap="round" />
+  </svg>
+);
+
 // 3D BURGER WITH STARBURST SPLASH FOR 80% OFF BANNER
 export const BannerBurgerWithBurst = ({ size = 88, className = "" }) => (
   <div className={`relative flex items-center justify-center ${className}`} style={{ width: size, height: size }}>

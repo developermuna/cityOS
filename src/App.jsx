@@ -16,6 +16,14 @@ import { CartFloatingBar } from './components/CartFloatingBar';
 import { InstamartPage } from './components/InstamartPage';
 import { DineoutPage } from './components/DineoutPage';
 import { ScenesPage } from './components/ScenesPage';
+import { 
+  CityOSHubPage, 
+  ShopHubPage, 
+  ServiceHubPage, 
+  RideHubPage, 
+  TravelHubPage, 
+  RentHubPage 
+} from './components/CityHubPages';
 import { featuredRestaurants, store99Items } from './data/mockData';
 
 export default function App() {
@@ -99,11 +107,47 @@ export default function App() {
       )}
 
       {/* Main App Content - Conditioned on Active Tab */}
-      {activeTab === 'instamart' ? (
+      {activeTab === 'cityos' ? (
+        <CityOSHubPage 
+          onTabChange={setActiveTab}
+          onMenuClick={() => showToast("Account & CityOS Settings")}
+          onLocationClick={() => showToast("Location: Mumbai Central (Deliver here)")}
+        />
+      ) : activeTab === 'shop' ? (
+        <ShopHubPage 
+          onTabChange={setActiveTab}
+          onMenuClick={() => showToast("Account & CityOS Settings")}
+          onLocationClick={() => showToast("Location: Mumbai Central (Deliver here)")}
+        />
+      ) : activeTab === 'grocery' || activeTab === 'instamart' ? (
         <InstamartPage 
           onTabChange={setActiveTab}
           onAddToCart={handleAddToCart}
           cartItems={cartItems}
+        />
+      ) : activeTab === 'service' ? (
+        <ServiceHubPage 
+          onTabChange={setActiveTab}
+          onMenuClick={() => showToast("Account & CityOS Settings")}
+          onLocationClick={() => showToast("Location: Mumbai Central (Deliver here)")}
+        />
+      ) : activeTab === 'ride' ? (
+        <RideHubPage 
+          onTabChange={setActiveTab}
+          onMenuClick={() => showToast("Account & CityOS Settings")}
+          onLocationClick={() => showToast("Location: Mumbai Central (Deliver here)")}
+        />
+      ) : activeTab === 'travel' ? (
+        <TravelHubPage 
+          onTabChange={setActiveTab}
+          onMenuClick={() => showToast("Account & CityOS Settings")}
+          onLocationClick={() => showToast("Location: Mumbai Central (Deliver here)")}
+        />
+      ) : activeTab === 'rent' ? (
+        <RentHubPage 
+          onTabChange={setActiveTab}
+          onMenuClick={() => showToast("Account & CityOS Settings")}
+          onLocationClick={() => showToast("Location: Mumbai Central (Deliver here)")}
         />
       ) : activeTab === 'dineout' ? (
         <DineoutPage onTabChange={setActiveTab} />

@@ -12,7 +12,7 @@ export const InstamartPage = ({ onTabChange, onAddToCart, cartItems = {} }) => {
       {/* Fixed Unified Header with White Theme and Attached Tabs */}
       <div className="w-full bg-[#edf2f7]">
         <Header
-          activeTab="instamart"
+          activeTab="grocery"
           onTabChange={onTabChange}
           theme="white"
         />
