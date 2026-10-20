@@ -3,7 +3,7 @@ import { ChevronRight, Bell, User } from 'lucide-react';
 import { CategoryTabs } from './CategoryTabs';
 
 export const Header = ({ 
-  activeTab = 'food', 
+  activeTab = 'cityos', 
   onTabChange, 
   onMenuClick, 
   onLocationClick,

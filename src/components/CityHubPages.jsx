@@ -45,13 +45,13 @@ export const CityOSHubPageContent = ({ onTabChange }) => {
         <div className="flex gap-4 px-4 overflow-x-auto no-scrollbar scroll-smooth">
           {[
             { id: 'food', label: 'Food', desc: '80% OFF', color: 'from-purple-500 to-indigo-600', icon: '🍔' },
-            { id: 'grocery', label: 'Grocery', desc: '10 Mins', color: 'from-emerald-500 to-teal-600', icon: '🛒' },
-            { id: 'ride', label: 'Ride', desc: '2 Mins', color: 'from-amber-400 to-orange-600', icon: '🛺' },
+            { id: 'instamart', label: 'Instamart', desc: '10 Mins', color: 'from-emerald-500 to-teal-600', icon: '🛒' },
+            { id: 'ride', label: 'Ride', desc: '2 Mins', color: 'from-amber-400 to-orange-600', icon: '🚕' },
             { id: 'shop', label: 'Shop', desc: 'Mega Deals', color: 'from-pink-500 to-rose-600', icon: '🛍️' },
-            { id: 'service', label: 'Service', desc: 'Home Care', color: 'from-cyan-500 to-blue-600', icon: '🛠️' },
-            { id: 'travel', label: 'Travel', desc: 'Flights', color: 'from-sky-400 to-indigo-600', icon: '✈️' },
-            { id: 'rent', label: 'Rent', desc: 'Verified', color: 'from-teal-500 to-emerald-700', icon: '🏠' },
             { id: 'dineout', label: 'Dineout', desc: 'GIRF 50%', color: 'from-violet-500 to-purple-800', icon: '🍽️' },
+            { id: 'travel', label: 'Travel', desc: 'Flights', color: 'from-sky-400 to-indigo-600', icon: '✈️' },
+            { id: 'scenes', label: 'Scenes', desc: 'Live Events', color: 'from-teal-500 to-emerald-700', icon: '🪩' },
+            { id: 'cityos', label: 'CityOS', desc: 'Hub', color: 'from-blue-500 to-cyan-600', icon: '🏙️' },
           ].map((item, i) => (
             <div
               key={i}

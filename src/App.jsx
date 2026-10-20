@@ -24,7 +24,7 @@ import { CartFloatingBar } from './components/CartFloatingBar';
 import { featuredRestaurants, store99Items, instamartData } from './data/mockData';
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState('food');
+  const [activeTab, setActiveTab] = useState('cityos');
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTopFilter, setActiveTopFilter] = useState('none');
   const [filterToggles, setFilterToggles] = useState({
@@ -35,6 +35,7 @@ export default function App() {
     rating4: false
   });
   const [cartItems, setCartItems] = useState({});
+  const [isCartOpen, setIsCartOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState(null);
 
   // Show quick toast notification
@@ -96,6 +97,8 @@ export default function App() {
 
   const isGrocery = activeTab === 'grocery' || activeTab === 'instamart';
 
+  const totalCartItems = Object.values(cartItems).reduce((sum, count) => sum + count, 0);
+
   return (
     <MobileFrame>
       {/* Toast Notification */}
@@ -119,6 +122,8 @@ export default function App() {
           onLocationClick={() => showToast("Location: Mumbai Central (Deliver here)")}
           searchQuery={searchQuery}
           setSearchQuery={setSearchQuery}
+          cartCount={totalCartItems}
+          onCartClick={() => setIsCartOpen(true)}
         >
           {activeTab === 'cityos' ? (
             <CityOSHubPageContent onTabChange={setActiveTab} />
@@ -209,6 +214,8 @@ export default function App() {
       {/* Floating Bottom Cart Bar & Checkout Modal */}
       <CartFloatingBar
         cartItems={cartItems}
+        isOpen={isCartOpen}
+        setIsOpen={setIsCartOpen}
         storeItems={[
           ...store99Items,
           ...instamartData.freshStore.map(i => ({ ...i, dealPrice: i.price })),

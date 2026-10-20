@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import { ShoppingBag, ArrowRight, X, CheckCircle2 } from 'lucide-react';
 
-export const CartFloatingBar = ({ cartItems = {}, storeItems = [], onClearCart }) => {
-  const [isOpen, setIsOpen] = useState(false);
+export const CartFloatingBar = ({ cartItems = {}, storeItems = [], onClearCart, isOpen, setIsOpen }) => {
   const [orderPlaced, setOrderPlaced] = useState(false);
 
   // Compute totals

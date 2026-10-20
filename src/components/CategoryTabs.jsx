@@ -11,7 +11,7 @@ import {
 } from './CustomIcons';
 
 export const CategoryTabs = ({ 
-  activeTab = 'food', 
+  activeTab = 'cityos', 
   onTabChange, 
   theme = 'dark' // 'dark', 'white', 'cream', 'black'
 }) => {
@@ -21,11 +21,11 @@ export const CategoryTabs = ({
   // 8 Renamed Header Tabs: cityOS, shop, grocery, food, service, ride, travel, rent
   const tabs = [
     { id: 'cityos', label: 'cityOS', icon: TabCityOSIcon },
-    { id: 'shop', label: 'shop', icon: TabShopIcon, badge: 'Sale' },
-    { id: 'grocery', label: 'grocery', icon: TabInstamartBasketIcon, badge: '10 mins' },
+    { id: 'shop', label: 'shop', icon: TabShopIcon },
+    { id: 'grocery', label: 'grocery', icon: TabInstamartBasketIcon },
     { id: 'food', label: 'food', icon: TabBurgerIcon },
     { id: 'service', label: 'service', icon: TabServiceIcon },
-    { id: 'ride', label: 'ride', icon: TabRideIcon, badge: '2 mins' },
+    { id: 'ride', label: 'ride', icon: TabRideIcon },
     { id: 'travel', label: 'travel', icon: TabTravelIcon },
     { id: 'rent', label: 'rent', icon: TabRentIcon }
   ];
@@ -154,43 +154,43 @@ export const CategoryTabs = ({
   const activeCx = activeStartX + svgButtonWidth / 2;
   const activeEndX = activeStartX + svgButtonWidth;
 
-  // Inactive button path generator
+  // Inactive button path generator - Adjusted for smoother curves and 64px baseline
   const getInactiveButtonPath = (idx) => {
     const sX = idx * slotWidth;
     const cx = sX + svgButtonWidth / 2;
     return `
-      M ${cx - 46},70
-      C ${cx - 44},70 ${cx - 40},68 ${cx - 38},60
-      C ${cx - 32},38 ${cx - 28},10 ${cx - 20},6
-      C ${cx - 14},2 ${cx - 8},4 ${cx},4
-      C ${cx + 8},4 ${cx + 14},2 ${cx + 20},6
-      C ${cx + 28},10 ${cx + 32},38 ${cx + 38},60
-      C ${cx + 40},68 ${cx + 44},70 ${cx + 46},70
+      M ${cx - 46},64
+      C ${cx - 42},64 ${cx - 40},62 ${cx - 38},54
+      C ${cx - 32},34 ${cx - 28},10 ${cx - 20},6
+      C ${cx - 12},2 ${cx - 8},4 ${cx},4
+      C ${cx + 8},4 ${cx + 12},2 ${cx + 20},6
+      C ${cx + 28},10 ${cx + 32},34 ${cx + 38},54
+      C ${cx + 40},62 ${cx + 42},64 ${cx + 46},64
       Z
     `;
   };
 
-  // Active button upper arch contour
+  // Active button upper arch contour - Smoother and 64px baseline
   const archContour = `
-    C ${activeStartX + 2},70 ${activeStartX + 4},68 ${activeStartX + 8},60
-    C ${activeStartX + 14},38 ${activeStartX + 20},10 ${activeStartX + 28},6
+    C ${activeStartX + 4},64 ${activeStartX + 6},62 ${activeStartX + 10},54
+    C ${activeStartX + 16},34 ${activeStartX + 20},10 ${activeStartX + 28},6
     C ${activeStartX + 34},2 ${activeStartX + 40},4 ${activeCx},4
     C ${activeEndX - 40},4 ${activeEndX - 34},2 ${activeEndX - 28},6
-    C ${activeEndX - 20},10 ${activeEndX - 14},38 ${activeEndX - 8},60
-    C ${activeEndX - 6},68 ${activeEndX - 2},70 ${activeEndX},70
+    C ${activeEndX - 20},10 ${activeEndX - 16},34 ${activeEndX - 10},54
+    C ${activeEndX - 6},62 ${activeEndX - 4},64 ${activeEndX},64
   `;
 
   // 1. Continuous single-color border line spanning all tabs
-  const leftBaseline = activeStartX > 0 ? `M 0,70 L ${activeStartX},70` : `M 0,70`;
-  const rightBaseline = activeEndX < totalWidth ? `L ${totalWidth},70` : ``;
+  const leftBaseline = activeStartX > 0 ? `M 0,64 L ${activeStartX},64` : `M 0,64`;
+  const rightBaseline = activeEndX < totalWidth ? `L ${totalWidth},64` : ``;
   const continuousBorderLine = `${leftBaseline} ${archContour} ${rightBaseline}`;
 
   // 2. Active button fill region
   const activeFillPath = `
-    M ${activeStartX},70 
+    M ${activeStartX},64 
     ${archContour}
-    L ${activeEndX},74 
-    L ${activeStartX},74 
+    L ${activeEndX},68 
+    L ${activeStartX},68 
     Z
   `;
 
@@ -223,7 +223,7 @@ export const CategoryTabs = ({
         style={{ WebkitOverflowScrolling: 'touch' }}
       >
         <div 
-          className="relative h-[74px]"
+          className="relative h-[68px]"
           style={{ width: `${totalWidth}px`, minWidth: `${totalWidth}px` }}
         >
           
@@ -232,7 +232,7 @@ export const CategoryTabs = ({
               - Active tab is skipped as it has its own layer
           */}
           <svg
-            viewBox={`0 0 ${totalWidth} 74`}
+            viewBox={`0 0 ${totalWidth} 68`}
             preserveAspectRatio="none"
             className="absolute inset-0 w-full h-full pointer-events-none z-10"
           >
@@ -245,7 +245,7 @@ export const CategoryTabs = ({
                   d={getInactiveButtonPath(idx)}
                   fill={styles.inactiveFill}
                   stroke={styles.inactiveBorder}
-                  strokeWidth="2"
+                  strokeWidth="1"
                 />
               );
             })}
@@ -253,7 +253,7 @@ export const CategoryTabs = ({
 
           {/* LAYER 2: Active Button Fill Layer (z-20) */}
           <svg
-            viewBox={`0 0 ${totalWidth} 74`}
+            viewBox={`0 0 ${totalWidth} 68`}
             preserveAspectRatio="none"
             className="absolute inset-0 w-full h-full pointer-events-none z-20"
           >
@@ -262,20 +262,12 @@ export const CategoryTabs = ({
               fill={styles.activeFill}
             />
 
-            {/* Ambient sheen glow for active tab */}
-            <ellipse 
-              cx={activeCx} 
-              cy="24" 
-              rx="24" 
-              ry="12" 
-              fill={styles.activeBorder} 
-              fillOpacity="0.2" 
-            />
+            {/* Removed ambient sheen glow as requested */}
           </svg>
 
           {/* LAYER 3: FOREGROUND THE FORWARD ACTIVE BORDER LINE (z-30) */}
           <svg
-            viewBox={`0 0 ${totalWidth} 74`}
+            viewBox={`0 0 ${totalWidth} 68`}
             preserveAspectRatio="none"
             className="absolute inset-0 w-full h-full pointer-events-none z-30"
             style={{ filter: styles.activeGlow }}
@@ -284,7 +276,7 @@ export const CategoryTabs = ({
               d={continuousBorderLine}
               fill="none"
               stroke={styles.activeBorder}
-              strokeWidth="3"
+              strokeWidth="1.5"
               strokeLinecap="round"
               strokeLinejoin="round"
             />
@@ -316,12 +308,6 @@ export const CategoryTabs = ({
                         size={tab.id === 'food' ? 35 : 33} 
                         className={isActive ? 'scale-105 transition-transform' : 'opacity-90 group-hover:opacity-100 transition-opacity'} 
                       />
-
-                      {tab.badge && (
-                        <span className="absolute -bottom-1.5 px-1.5 py-[0.5px] bg-[#1668e3] text-white text-[9px] font-black rounded-md shadow-md tracking-tight whitespace-nowrap">
-                          {tab.badge}
-                        </span>
-                      )}
                     </div>
 
                     <span className={`text-[12px] tracking-tight leading-none transition-colors ${isActive ? styles.activeText : styles.inactiveText}`}>

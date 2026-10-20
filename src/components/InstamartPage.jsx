@@ -1,10 +1,31 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Search, ChevronRight, Plus } from 'lucide-react';
 import { Header } from './Header';
 import { instamartData } from '../data/mockData';
 
 export const InstamartPage = ({ onTabChange, onAddToCart, _cartItems = {} }) => {
   const [searchTerm, setSearchTerm] = useState('');
+  const [isVisible, setIsVisible] = useState(true);
+  const [lastScrollY, setLastScrollY] = useState(0);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      
+      if (currentScrollY <= 10) {
+        setIsVisible(true);
+      } else if (currentScrollY > lastScrollY && currentScrollY > 100) {
+        setIsVisible(false);
+      } else if (currentScrollY < lastScrollY) {
+        setIsVisible(true);
+      }
+      
+      setLastScrollY(currentScrollY);
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [lastScrollY]);
 
   return (
     <div className="w-full bg-white min-h-screen text-slate-800 pb-16 select-none">
@@ -18,8 +39,10 @@ export const InstamartPage = ({ onTabChange, onAddToCart, _cartItems = {} }) => 
       </div>
 
       <div className="page-transition">
-        {/* Search Input */}
-      <div className="px-4 py-3">
+        {/* Sticky Search Input with Smart Reveal */}
+      <div className={`px-4 py-3 sticky top-0 z-50 bg-white shadow-sm transition-transform duration-300 ease-in-out ${
+        isVisible ? 'translate-y-0' : '-translate-y-full'
+      }`}>
         <div className="w-full bg-[#f4f4f6] rounded-2xl h-11 px-3.5 flex items-center justify-between border border-slate-200">
           <div className="flex items-center gap-2 w-full">
             <Search size={18} className="text-slate-500" />
