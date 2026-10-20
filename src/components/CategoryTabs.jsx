@@ -34,8 +34,8 @@ export const CategoryTabs = ({
       case 'instamart':
         return {
           activeFill: '#ffffff',
-          activeBorder: '#475569', // Slate grey continuous border line
-          activeText: 'text-slate-900 font-black',
+          activeBorder: '#475569', // Crisp slate grey border line
+          activeText: 'text-slate-900 font-bold',
           inactiveFill: '#f8fafc',
           inactiveBorder: '#e2e8f0',
           inactiveText: 'text-slate-500 font-semibold'
@@ -43,8 +43,8 @@ export const CategoryTabs = ({
       case 'dineout':
         return {
           activeFill: '#faf7ee',
-          activeBorder: '#315424', // Forest green continuous border line
-          activeText: 'text-[#23421b] font-black',
+          activeBorder: '#315424', // Crisp dark olive green border line
+          activeText: 'text-[#23421b] font-bold',
           inactiveFill: '#eeeae0',
           inactiveBorder: '#ded8cb',
           inactiveText: 'text-[#6b7367] font-semibold'
@@ -52,18 +52,18 @@ export const CategoryTabs = ({
       case 'scenes':
         return {
           activeFill: '#09090b',
-          activeBorder: '#ffffff', // White continuous border line
-          activeText: 'text-white font-black',
+          activeBorder: '#ffffff', // Crisp white border line
+          activeText: 'text-white font-bold',
           inactiveFill: '#18181b',
-          inactiveBorder: 'rgba(255, 255, 255, 0.12)',
+          inactiveBorder: 'rgba(255, 255, 255, 0.1)',
           inactiveText: 'text-[#9ca3af] font-semibold'
         };
       case 'food':
       default:
         return {
           activeFill: '#0d051f',
-          activeBorder: '#a782fc', // Lavender purple continuous border line
-          activeText: 'text-white font-black',
+          activeBorder: '#a782fc', // Crisp lavender purple border line
+          activeText: 'text-white font-bold',
           inactiveFill: '#170b2e',
           inactiveBorder: 'rgba(255, 255, 255, 0.08)',
           inactiveText: 'text-[#9d93b1] font-semibold'
@@ -73,36 +73,28 @@ export const CategoryTabs = ({
 
   const styles = getHeaderStyles();
 
-  // Coordinates for the 4 slots in a 400x82 space
+  // 4 Slot boundaries across 400px width
   const slotWidth = 100;
   const tabIndexMap = { food: 0, instamart: 1, dineout: 2, scenes: 3 };
   const activeIdx = tabIndexMap[activeTab] ?? 0;
   const startX = activeIdx * slotWidth;
   const endX = startX + slotWidth;
 
-  // Single continuous border line from far-left edge (0,80) to far-right edge (400,80)
-  // Wherever active tab is, it smoothly arches up around the button and continues to 400!
-  const leftBaseline = startX > 0 ? `M 0,80 L ${startX},80` : `M 0,80`;
-  const archSection = `
-    C ${startX + 6},80 ${startX + 10},72 ${startX + 13},60 
-    L ${startX + 22},16 
-    C ${startX + 25},6 ${startX + 33},3 ${startX + 42},3 
-    L ${endX - 42},3 
-    C ${endX - 33},3 ${endX - 25},6 ${endX - 22},16 
-    L ${endX - 13},60 
-    C ${endX - 10},72 ${endX - 6},80 ${endX},80
+  // Single continuous border line path from far-left (0,78) to far-right (400,78)
+  // Drawn FORWARD in the foreground layer so it is NEVER hidden below any button!
+  const leftSegment = startX > 0 ? `M 0,78 L ${startX},78` : `M 0,78`;
+  const archSegment = `
+    C ${startX + 5},78 ${startX + 7},72 ${startX + 9},62 
+    L ${startX + 18},16 
+    C ${startX + 21},7 ${startX + 29},3 ${startX + 38},3 
+    L ${endX - 38},3 
+    C ${endX - 29},3 ${endX - 21},7 ${endX - 18},16 
+    L ${endX - 9},62 
+    C ${endX - 7},72 ${endX - 5},78 ${endX},78
   `;
-  const rightBaseline = endX < 400 ? `L 400,80` : ``;
+  const rightSegment = endX < 400 ? `L 400,78` : ``;
 
-  // The continuous single-color border line path from left edge to right edge
-  const continuousBorderLine = `${leftBaseline} ${archSection} ${rightBaseline}`;
-
-  // Fill region for the active button seamlessly connecting into the section below
-  const activeFillPath = `
-    M ${startX},80 
-    ${archSection}
-    L ${startX},80 Z
-  `;
+  const continuousBorderLine = `${leftSegment} ${archSegment} ${rightSegment}`;
 
   const handleTabClick = (tabId) => {
     if (onTabChange) {
@@ -112,42 +104,11 @@ export const CategoryTabs = ({
 
   return (
     <div className="w-full select-none pt-1">
-      {/* 4 Tabs Container with Same Size and Continuous Border Line */}
-      <div className="relative w-full h-[82px]">
+      {/* Container with identical button size and design */}
+      <div className="relative w-full h-[80px]">
         
-        {/* SVG LAYER: Draws the continuous single-color border line from left edge (0) to right edge (400) */}
-        <svg
-          viewBox="0 0 400 82"
-          preserveAspectRatio="none"
-          className="absolute inset-0 w-full h-full pointer-events-none z-10"
-        >
-          {/* Active Button Background Fill seamlessly merging into below section */}
-          <path
-            d={activeFillPath}
-            fill={styles.activeFill}
-          />
-
-          {/* THE SINGLE UNIFORM COLOR BORDER LINE STARTING FROM LEFT EDGE (0) AND ENDING AT RIGHT EDGE (400) */}
-          <path
-            d={continuousBorderLine}
-            fill="none"
-            stroke={styles.activeBorder}
-            strokeWidth="2.2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-
-          {/* Ambient sheen glow for Food & Scenes active tabs */}
-          {activeTab === 'food' && (
-            <ellipse cx="50" cy="30" rx="26" ry="14" fill="#8e65e6" fillOpacity="0.25" />
-          )}
-          {activeTab === 'scenes' && (
-            <ellipse cx="350" cy="30" rx="26" ry="14" fill="#ffffff" fillOpacity="0.18" />
-          )}
-        </svg>
-
-        {/* INTERACTIVE BUTTONS LAYER: Identical size and design for all 4 buttons */}
-        <div className="grid grid-cols-4 items-end relative z-20 w-full h-full">
+        {/* BASE LAYER: Buttons with SAME design, size, and trapezoid shape */}
+        <div className="grid grid-cols-4 items-end relative z-10 w-full h-full">
           {tabs.map((tab) => {
             const isActive = activeTab === tab.id;
             const Icon = tab.icon;
@@ -160,32 +121,38 @@ export const CategoryTabs = ({
                 className="relative flex flex-col items-center justify-end cursor-pointer group h-full w-full p-0 bg-transparent border-none outline-none"
                 aria-label={`Switch to ${tab.label}`}
               >
-                {/* BUTTON CONTAINER: Same exact size across all 4 buttons */}
+                {/* BUTTON CARD: Exactly the same design and size for all 4 buttons */}
                 <div className="relative w-full h-[76px] flex flex-col items-center justify-end">
                   
-                  {/* For inactive tabs: Same trapezoid shape (top narrow, bottom wider) */}
-                  {!isActive && (
-                    <svg
-                      viewBox="0 0 100 80"
-                      preserveAspectRatio="none"
-                      className="absolute inset-0 w-full h-full pointer-events-none"
-                    >
-                      <path
-                        d="M 6,75 
-                           C 6,78 10,80 15,80 
-                           L 85,80 
-                           C 90,80 94,78 94,75 
-                           L 85,16 
-                           C 83,8 77,4 69,4 
-                           L 31,4 
-                           C 23,4 17,8 15,16 
-                           Z"
-                        fill={styles.inactiveFill}
-                        stroke={styles.inactiveBorder}
-                        strokeWidth="1.2"
-                      />
-                    </svg>
-                  )}
+                  {/* Trapezoid Card Background */}
+                  <svg
+                    viewBox="0 0 100 80"
+                    preserveAspectRatio="none"
+                    className="absolute inset-0 w-full h-full pointer-events-none"
+                  >
+                    <path
+                      d="M 5,76 
+                         C 5,79 9,80 14,80 
+                         L 86,80 
+                         C 91,80 95,79 95,76 
+                         L 85,16 
+                         C 83,8 77,4 69,4 
+                         L 31,4 
+                         C 23,4 17,8 15,16 
+                         Z"
+                      fill={isActive ? styles.activeFill : styles.inactiveFill}
+                      stroke={isActive ? 'none' : styles.inactiveBorder}
+                      strokeWidth="1.2"
+                    />
+
+                    {/* Subtle glow highlight on active button */}
+                    {isActive && activeTab === 'food' && (
+                      <ellipse cx="50" cy="30" rx="24" ry="14" fill="#8e65e6" fillOpacity="0.25" />
+                    )}
+                    {isActive && activeTab === 'scenes' && (
+                      <ellipse cx="50" cy="30" rx="24" ry="14" fill="#ffffff" fillOpacity="0.18" />
+                    )}
+                  </svg>
 
                   {/* Icon & Label */}
                   <div className="relative z-10 flex flex-col items-center pb-2 pointer-events-none">
@@ -198,7 +165,7 @@ export const CategoryTabs = ({
                         </>
                       )}
 
-                      <Icon size={isActive ? 36 : 31} className={isActive ? '' : 'opacity-95'} />
+                      <Icon size={33} className={isActive ? 'scale-105 transition-transform' : 'opacity-95'} />
 
                       {tab.badge && (
                         <span className="absolute -bottom-1.5 px-1.5 py-[0.5px] bg-[#1668e3] text-white text-[9px] font-black rounded-md shadow-md tracking-tight whitespace-nowrap">
@@ -217,6 +184,27 @@ export const CategoryTabs = ({
             );
           })}
         </div>
+
+        {/* FOREGROUND LAYER (z-30): THE FORWARD ACTIVE BORDER LINE
+            - Starts at far-left edge (0,78)
+            - Arches up and around the active button
+            - Continues to far-right edge (400,78)
+            - Placed FORWARD so it is NEVER hidden below any button!
+        */}
+        <svg
+          viewBox="0 0 400 80"
+          preserveAspectRatio="none"
+          className="absolute inset-0 w-full h-full pointer-events-none z-30"
+        >
+          <path
+            d={continuousBorderLine}
+            fill="none"
+            stroke={styles.activeBorder}
+            strokeWidth="2.4"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
 
       </div>
     </div>
