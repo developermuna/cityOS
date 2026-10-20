@@ -8,10 +8,10 @@ export const FilterPills = ({ activeFilter, onFilterChange }) => {
         {/* Left Pill: MIN Rs. 100 OFF */}
         <button
           onClick={() => onFilterChange && onFilterChange('discount100')}
-          className={`py-2 px-3 rounded-full text-center font-extrabold text-[12px] tracking-tight transition-all duration-200 border cursor-pointer ${
+          className={`py-2 px-3 rounded-full text-center font-extrabold text-[12px] tracking-tight transition-all duration-200 border cursor-pointer bg-white ${
             activeFilter === 'discount100'
-              ? 'bg-white text-[#fc8019] border-[#fc8019] shadow-sm ring-1 ring-[#fc8019]/30'
-              : 'bg-white text-[#fc8019] border-slate-100 hover:border-slate-200 shadow-sm'
+              ? 'text-[#fc8019] border-[#fc8019] shadow-md ring-1 ring-[#fc8019]/40'
+              : 'text-[#414449] border-slate-100 hover:border-slate-200 shadow-sm'
           }`}
         >
           MIN Rs. 100 OFF
@@ -20,10 +20,10 @@ export const FilterPills = ({ activeFilter, onFilterChange }) => {
         {/* Right Pill: FAST DELIVERY */}
         <button
           onClick={() => onFilterChange && onFilterChange('fastDelivery')}
-          className={`py-2 px-3 rounded-full text-center font-extrabold text-[12px] tracking-tight transition-all duration-200 border cursor-pointer ${
+          className={`py-2 px-3 rounded-full text-center font-extrabold text-[12px] tracking-tight transition-all duration-200 border cursor-pointer bg-white ${
             activeFilter === 'fastDelivery'
-              ? 'bg-white text-slate-900 border-slate-900 shadow-sm ring-1 ring-slate-900/20'
-              : 'bg-white text-[#414449] border-slate-100 hover:border-slate-200 shadow-sm'
+              ? 'text-slate-900 border-slate-900 shadow-md ring-1 ring-slate-900/40'
+              : 'text-[#414449] border-slate-100 hover:border-slate-200 shadow-sm'
           }`}
         >
           FAST DELIVERY

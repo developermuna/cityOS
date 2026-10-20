@@ -10,10 +10,10 @@ export const FilterBar = ({ selectedFilters = {}, onToggleFilter }) => {
         {/* Filter Button */}
         <button
           onClick={() => onToggleFilter('filterModal')}
-          className={`shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-[12px] font-bold transition-all shadow-2xs ${
+          className={`shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-[12px] font-bold transition-all bg-white ${
             selectedFilters.filterModal
-              ? 'bg-slate-900 text-white border-slate-900'
-              : 'bg-white text-slate-800 border-slate-200 hover:border-slate-300'
+              ? 'text-slate-900 border-slate-900 ring-1 ring-slate-900/30 shadow-md'
+              : 'text-slate-800 border-slate-200 hover:border-slate-300 shadow-2xs'
           }`}
         >
           <span>Filter</span>
@@ -23,10 +23,10 @@ export const FilterBar = ({ selectedFilters = {}, onToggleFilter }) => {
         {/* Sort by */}
         <button
           onClick={() => onToggleFilter('sortBy')}
-          className={`shrink-0 flex items-center gap-1 px-3 py-1.5 rounded-full border text-[12px] font-bold transition-all shadow-2xs ${
+          className={`shrink-0 flex items-center gap-1 px-3 py-1.5 rounded-full border text-[12px] font-bold transition-all bg-white ${
             selectedFilters.sortBy
-              ? 'bg-slate-900 text-white border-slate-900'
-              : 'bg-white text-slate-800 border-slate-200 hover:border-slate-300'
+              ? 'text-slate-900 border-slate-900 ring-1 ring-slate-900/30 shadow-md'
+              : 'text-slate-800 border-slate-200 hover:border-slate-300 shadow-2xs'
           }`}
         >
           <span>Sort by</span>
@@ -36,10 +36,10 @@ export const FilterBar = ({ selectedFilters = {}, onToggleFilter }) => {
         {/* 99 Store Filter */}
         <button
           onClick={() => onToggleFilter('store99')}
-          className={`shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-[12px] font-bold transition-all shadow-2xs ${
+          className={`shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-[12px] font-bold transition-all bg-white ${
             selectedFilters.store99
-              ? 'bg-amber-50 text-slate-900 border-amber-400 ring-1 ring-amber-400'
-              : 'bg-white text-slate-800 border-slate-200 hover:border-slate-300'
+              ? 'text-slate-900 border-amber-500 ring-1 ring-amber-500/40 shadow-md'
+              : 'text-slate-800 border-slate-200 hover:border-slate-300 shadow-2xs'
           }`}
         >
           <span className="w-4 h-4 rounded-full bg-[#f6ba23] text-slate-950 font-black text-[9px] flex items-center justify-center">
@@ -51,10 +51,10 @@ export const FilterBar = ({ selectedFilters = {}, onToggleFilter }) => {
         {/* Bolt 15 min */}
         <button
           onClick={() => onToggleFilter('bolt15')}
-          className={`shrink-0 flex items-center gap-1 px-3 py-1.5 rounded-full border text-[12px] font-bold transition-all shadow-2xs ${
+          className={`shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-[12px] font-bold transition-all bg-white ${
             selectedFilters.bolt15
-              ? 'bg-orange-50 text-orange-600 border-orange-400 ring-1 ring-orange-400'
-              : 'bg-white text-slate-800 border-slate-200 hover:border-slate-300'
+              ? 'text-orange-600 border-orange-500 ring-1 ring-orange-500/40 shadow-md'
+              : 'text-slate-800 border-slate-200 hover:border-slate-300 shadow-2xs'
           }`}
         >
           <span className="text-orange-500 font-black">Bolt</span>
@@ -65,10 +65,10 @@ export const FilterBar = ({ selectedFilters = {}, onToggleFilter }) => {
         {/* Ratings 4.0+ */}
         <button
           onClick={() => onToggleFilter('rating4')}
-          className={`shrink-0 flex items-center gap-1 px-3 py-1.5 rounded-full border text-[12px] font-bold transition-all shadow-2xs ${
+          className={`shrink-0 flex items-center gap-1 px-3 py-1.5 rounded-full border text-[12px] font-bold transition-all bg-white ${
             selectedFilters.rating4
-              ? 'bg-green-50 text-emerald-700 border-emerald-500 ring-1 ring-emerald-500'
-              : 'bg-white text-slate-800 border-slate-200 hover:border-slate-300'
+              ? 'text-emerald-700 border-emerald-500 ring-1 ring-emerald-500/40 shadow-md'
+              : 'text-slate-800 border-slate-200 hover:border-slate-300 shadow-2xs'
           }`}
         >
           <span>Rating 4.0+</span>

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Smartphone, Monitor, Sparkles } from 'lucide-react';
+import { Smartphone, Monitor } from 'lucide-react';
 
 export const MobileFrame = ({ children }) => {
   const [viewMode, setViewMode] = useState('phone'); // 'phone' | 'responsive'

@@ -1,9 +1,17 @@
 import React, { useState } from 'react';
 import { MobileFrame } from './components/MobileFrame';
-import { StatusBar } from './components/StatusBar';
-import { Header } from './components/Header';
-import { SearchBar } from './components/SearchBar';
-import { MegaPromoBanner } from './components/MegaPromoBanner';
+import { PageLayout } from './components/PageLayout';
+import { InstamartPage } from './components/InstamartPage';
+import { 
+  CityOSHubPageContent, 
+  ShopHubPageContent, 
+  ServiceHubPageContent, 
+  RideHubPageContent, 
+  TravelHubPageContent, 
+  RentHubPageContent 
+} from './components/CityHubPages';
+import { DineoutPageContent } from './components/DineoutPage';
+import { ScenesPageContent } from './components/ScenesPage';
 import { BoltBanner } from './components/BoltBanner';
 import { FilterPills } from './components/FilterPills';
 import { OfferCardsScroll } from './components/OfferCardsScroll';
@@ -13,18 +21,7 @@ import { MindCategories } from './components/MindCategories';
 import { FilterBar } from './components/FilterBar';
 import { RestaurantCard } from './components/RestaurantCard';
 import { CartFloatingBar } from './components/CartFloatingBar';
-import { InstamartPage } from './components/InstamartPage';
-import { DineoutPage } from './components/DineoutPage';
-import { ScenesPage } from './components/ScenesPage';
-import { 
-  CityOSHubPage, 
-  ShopHubPage, 
-  ServiceHubPage, 
-  RideHubPage, 
-  TravelHubPage, 
-  RentHubPage 
-} from './components/CityHubPages';
-import { featuredRestaurants, store99Items } from './data/mockData';
+import { featuredRestaurants, store99Items, instamartData } from './data/mockData';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('food');
@@ -97,6 +94,8 @@ export default function App() {
     return true;
   });
 
+  const isGrocery = activeTab === 'grocery' || activeTab === 'instamart';
+
   return (
     <MobileFrame>
       {/* Toast Notification */}
@@ -106,163 +105,115 @@ export default function App() {
         </div>
       )}
 
-      {/* Main App Content - Conditioned on Active Tab */}
-      {activeTab === 'cityos' ? (
-        <CityOSHubPage 
-          onTabChange={setActiveTab}
-          onMenuClick={() => showToast("Account & CityOS Settings")}
-          onLocationClick={() => showToast("Location: Mumbai Central (Deliver here)")}
-        />
-      ) : activeTab === 'shop' ? (
-        <ShopHubPage 
-          onTabChange={setActiveTab}
-          onMenuClick={() => showToast("Account & CityOS Settings")}
-          onLocationClick={() => showToast("Location: Mumbai Central (Deliver here)")}
-        />
-      ) : activeTab === 'grocery' || activeTab === 'instamart' ? (
+      {isGrocery ? (
         <InstamartPage 
           onTabChange={setActiveTab}
           onAddToCart={handleAddToCart}
           cartItems={cartItems}
         />
-      ) : activeTab === 'service' ? (
-        <ServiceHubPage 
-          onTabChange={setActiveTab}
-          onMenuClick={() => showToast("Account & CityOS Settings")}
-          onLocationClick={() => showToast("Location: Mumbai Central (Deliver here)")}
-        />
-      ) : activeTab === 'ride' ? (
-        <RideHubPage 
-          onTabChange={setActiveTab}
-          onMenuClick={() => showToast("Account & CityOS Settings")}
-          onLocationClick={() => showToast("Location: Mumbai Central (Deliver here)")}
-        />
-      ) : activeTab === 'travel' ? (
-        <TravelHubPage 
-          onTabChange={setActiveTab}
-          onMenuClick={() => showToast("Account & CityOS Settings")}
-          onLocationClick={() => showToast("Location: Mumbai Central (Deliver here)")}
-        />
-      ) : activeTab === 'rent' ? (
-        <RentHubPage 
-          onTabChange={setActiveTab}
-          onMenuClick={() => showToast("Account & CityOS Settings")}
-          onLocationClick={() => showToast("Location: Mumbai Central (Deliver here)")}
-        />
-      ) : activeTab === 'dineout' ? (
-        <DineoutPage onTabChange={setActiveTab} />
-      ) : activeTab === 'scenes' ? (
-        <ScenesPage onTabChange={setActiveTab} />
       ) : (
-        <div className="w-full min-h-screen bg-white text-slate-900 pb-12 select-none">
-          
-          {/* Top Dark Midnight Purple Section Header matching category header.jpeg */}
-          <div className="w-full bg-gradient-to-b from-[#0b041a] via-[#100726] to-[#150836] pt-1 pb-3 text-white shadow-lg rounded-b-[28px]">
-            {/* Header: Location & 4 Tabs (Food, Instamart, Dineout, Scenes) */}
-            <Header
-              activeTab={activeTab}
-              onTabChange={setActiveTab}
-              onLocationClick={() => showToast("Location: Mumbai Central (Deliver here)")}
-              onMenuClick={() => showToast("Account & CityOS Settings")}
-            />
+        <PageLayout
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+          onMenuClick={() => showToast("Account & CityOS Settings")}
+          onLocationClick={() => showToast("Location: Mumbai Central (Deliver here)")}
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+        >
+          {activeTab === 'cityos' ? (
+            <CityOSHubPageContent onTabChange={setActiveTab} />
+          ) : activeTab === 'shop' ? (
+            <ShopHubPageContent />
+          ) : activeTab === 'service' ? (
+            <ServiceHubPageContent />
+          ) : activeTab === 'ride' ? (
+            <RideHubPageContent />
+          ) : activeTab === 'travel' ? (
+            <TravelHubPageContent />
+          ) : activeTab === 'rent' ? (
+            <RentHubPageContent />
+          ) : activeTab === 'dineout' ? (
+            <DineoutPageContent />
+          ) : activeTab === 'scenes' ? (
+            <ScenesPageContent />
+          ) : (
+            <>
+              {/* Default Food Page Content */}
+              <BoltBanner onOrderNow={() => showToast("Opening Bolt 15-min lightning kitchen")} />
 
-            {/* Search Bar */}
-            <SearchBar
-              value={searchQuery}
-              onChange={setSearchQuery}
-              onSearch={() => {}}
-            />
+              <FilterPills
+                activeFilter={activeTopFilter}
+                onFilterChange={(filter) => {
+                  setActiveTopFilter(prev => prev === filter ? 'none' : filter);
+                  showToast(`Filter applied: ${filter === 'discount100' ? 'MIN Rs. 100 OFF' : 'FAST DELIVERY'}`);
+                }}
+              />
 
-            {/* Mega Promo Banner (80% OFF UP TO ₹160 with countdown timer) */}
-            <MegaPromoBanner />
-          </div>
+              <OfferCardsScroll onCardClick={(card) => showToast(`Selected ${card.fullName}`)} />
 
-          {/* Body Content with White Background and Smooth Transition */}
-          <div className="w-full pt-3 bg-white page-transition">
-            {/* 1. Bolt Food In 15 Mins Banner */}
-            <BoltBanner onOrderNow={() => showToast("Opening Bolt 15-min lightning kitchen")} />
+              <Store99Section
+                cartItems={cartItems}
+                onAddToCart={handleAddToCart}
+                onRemoveFromCart={handleRemoveFromCart}
+              />
 
-            {/* 3. Filter Toggle Pills (MIN Rs. 100 OFF | FAST DELIVERY) */}
-            <FilterPills
-              activeFilter={activeTopFilter}
-              onFilterChange={(filter) => {
-                setActiveTopFilter(prev => prev === filter ? 'none' : filter);
-                showToast(`Filter applied: ${filter === 'discount100' ? 'MIN Rs. 100 OFF' : 'FAST DELIVERY'}`);
-              }}
-            />
+              <CashbackBanner onClaim={() => showToast("₹20 Free Cash activated for checkout!")} />
 
-            {/* 4. Horizontal Scroll Restaurant Offer Cards (Zulu's Pizza, Amar Veg, Nom Nom) */}
-            <OfferCardsScroll 
-              onCardClick={(card) => showToast(`Selected ${card.fullName}`)}
-            />
+              <MindCategories
+                onSelectCategory={(cat) => {
+                  setSearchQuery(cat.name === 'Corner' ? 'Sweets' : cat.name);
+                  showToast(`Browsing ${cat.name}`);
+                }}
+              />
 
-            {/* 5. 99 Store Section */}
-            <Store99Section
-              cartItems={cartItems}
-              onAddToCart={handleAddToCart}
-              onRemoveFromCart={handleRemoveFromCart}
-            />
+              <FilterBar
+                selectedFilters={filterToggles}
+                onToggleFilter={handleToggleFilter}
+              />
 
-            {/* 6. ₹20 Free Cash Banner */}
-            <CashbackBanner 
-              onClaim={() => showToast("₹20 Free Cash activated for checkout!")}
-            />
+              <div className="w-full px-4 mb-3">
+                <h2 className="text-[17px] font-black text-slate-900 tracking-tight leading-tight">
+                  Top 2028 restaurants to explore
+                </h2>
+                <p className="text-[12px] text-slate-500 font-semibold tracking-tight mt-0.5">
+                  Featured Restaurants
+                </p>
+              </div>
 
-            {/* 7. What's on your mind? Circular Food Categories */}
-            <MindCategories
-              onSelectCategory={(cat) => {
-                setSearchQuery(cat.name === 'Corner' ? 'Sweets' : cat.name);
-                showToast(`Browsing ${cat.name}`);
-              }}
-            />
+              <div className="w-full px-4">
+                {filteredRestaurants.map(restaurant => (
+                  <RestaurantCard
+                    key={restaurant.id}
+                    restaurant={restaurant}
+                    onSelect={(res) => showToast(`Opened menu for ${res.name}`)}
+                  />
+                ))}
 
-            {/* 8. Sticky Filter & Sorting Bar */}
-            <FilterBar
-              selectedFilters={filterToggles}
-              onToggleFilter={handleToggleFilter}
-            />
-
-            {/* 9. Top 2028 restaurants to explore */}
-            <div className="w-full px-4 mb-3">
-              <h2 className="text-[17px] font-black text-slate-900 tracking-tight leading-tight">
-                Top 2028 restaurants to explore
-              </h2>
-              <p className="text-[12px] text-slate-500 font-semibold tracking-tight mt-0.5">
-                Featured Restaurants
-              </p>
-            </div>
-
-            {/* Restaurant Cards List */}
-            <div className="w-full px-4">
-              {filteredRestaurants.map(restaurant => (
-                <RestaurantCard
-                  key={restaurant.id}
-                  restaurant={restaurant}
-                  onSelect={(res) => showToast(`Opened menu for ${res.name}`)}
-                />
-              ))}
-
-              {filteredRestaurants.length === 0 && (
-                <div className="py-12 text-center text-slate-400">
-                  <p className="font-bold text-sm">No matching restaurants found</p>
-                  <button 
-                    onClick={() => { setSearchQuery(''); setFilterToggles({}); }}
-                    className="mt-2 text-xs font-bold text-orange-500 underline"
-                  >
-                    Reset filters
-                  </button>
-                </div>
-              )}
-            </div>
-
-          </div>
-        </div>
+                {filteredRestaurants.length === 0 && (
+                  <div className="py-12 text-center text-slate-400">
+                    <p className="font-bold text-sm">No matching restaurants found</p>
+                    <button 
+                      onClick={() => { setSearchQuery(''); setFilterToggles({}); }}
+                      className="mt-2 text-xs font-bold text-orange-500 underline"
+                    >
+                      Reset filters
+                    </button>
+                  </div>
+                )}
+              </div>
+            </>
+          )}
+        </PageLayout>
       )}
 
       {/* Floating Bottom Cart Bar & Checkout Modal */}
       <CartFloatingBar
         cartItems={cartItems}
-        storeItems={store99Items}
+        storeItems={[
+          ...store99Items,
+          ...instamartData.freshStore.map(i => ({ ...i, dealPrice: i.price })),
+          ...instamartData.farmToDoor.map(i => ({ ...i, dealPrice: i.price }))
+        ]}
         onClearCart={handleClearCart}
       />
     </MobileFrame>

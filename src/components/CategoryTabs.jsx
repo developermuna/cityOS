@@ -143,66 +143,69 @@ export const CategoryTabs = ({
 
   const styles = getHeaderStyles();
 
-  // 8 Slot Coordinates: slotWidth = 94, totalWidth = 752
-  const slotWidth = 94;
-  const totalWidth = tabs.length * slotWidth; // 752
+  // 5-Button Layout: slotWidth = 70px to fit exactly 5 on standard screens (375px).
+  // Overlap is significant (svgButtonWidth 94 - slotWidth 70 = 24px).
+  const slotWidth = 70; 
+  const svgButtonWidth = 94; 
+  const totalWidth = (tabs.length - 1) * slotWidth + svgButtonWidth;
+  
   const activeIdx = Math.max(0, tabs.findIndex(t => t.id === activeTab));
-  const startX = activeIdx * slotWidth;
-  const endX = startX + slotWidth;
-  const activeCx = startX + slotWidth / 2;
+  const activeStartX = activeIdx * slotWidth;
+  const activeCx = activeStartX + svgButtonWidth / 2;
+  const activeEndX = activeStartX + svgButtonWidth;
 
-  // Inactive button path generator for any slot index
+  // Inactive button path generator
   const getInactiveButtonPath = (idx) => {
     const sX = idx * slotWidth;
-    const cx = sX + slotWidth / 2;
+    const cx = sX + svgButtonWidth / 2;
     return `
-      M ${cx - 39},76 
-      L ${cx + 39},76 
-      C ${cx + 41},76 ${cx + 42},72 ${cx + 42},66 
-      L ${cx + 34},18 
-      C ${cx + 30},10 ${cx + 26},6 ${cx + 22},6 
-      L ${cx - 22},6 
-      C ${cx - 26},6 ${cx - 30},10 ${cx - 34},18 
-      L ${cx - 42},66 
-      C ${cx - 42},72 ${cx - 41},76 ${cx - 39},76 
+      M ${cx - 46},70
+      C ${cx - 44},70 ${cx - 40},68 ${cx - 38},60
+      C ${cx - 32},38 ${cx - 28},10 ${cx - 20},6
+      C ${cx - 14},2 ${cx - 8},4 ${cx},4
+      C ${cx + 8},4 ${cx + 14},2 ${cx + 20},6
+      C ${cx + 28},10 ${cx + 32},38 ${cx + 38},60
+      C ${cx + 40},68 ${cx + 44},70 ${cx + 46},70
       Z
     `;
   };
 
   // Active button upper arch contour
   const archContour = `
-    C ${startX + 1},76 ${startX + 3},71 ${startX + 5},66 
-    L ${activeCx - 34},18 
-    C ${activeCx - 30},10 ${activeCx - 26},6 ${activeCx - 22},6 
-    L ${activeCx + 22},6 
-    C ${activeCx + 26},6 ${activeCx + 30},10 ${activeCx + 34},18 
-    L ${endX - 5},66 
-    C ${endX - 3},71 ${endX - 1},76 ${endX},76
+    C ${activeStartX + 2},70 ${activeStartX + 4},68 ${activeStartX + 8},60
+    C ${activeStartX + 14},38 ${activeStartX + 20},10 ${activeStartX + 28},6
+    C ${activeStartX + 34},2 ${activeStartX + 40},4 ${activeCx},4
+    C ${activeEndX - 40},4 ${activeEndX - 34},2 ${activeEndX - 28},6
+    C ${activeEndX - 20},10 ${activeEndX - 14},38 ${activeEndX - 8},60
+    C ${activeEndX - 6},68 ${activeEndX - 2},70 ${activeEndX},70
   `;
 
-  // 1. Continuous single-color border line spanning all 8 tabs (0 to totalWidth)
-  const leftBaseline = startX > 0 ? `M 0,76 L ${startX},76` : `M 0,76`;
-  const rightBaseline = endX < totalWidth ? `L ${totalWidth},76` : ``;
+  // 1. Continuous single-color border line spanning all tabs
+  const leftBaseline = activeStartX > 0 ? `M 0,70 L ${activeStartX},70` : `M 0,70`;
+  const rightBaseline = activeEndX < totalWidth ? `L ${totalWidth},70` : ``;
   const continuousBorderLine = `${leftBaseline} ${archContour} ${rightBaseline}`;
 
-  // 2. Active button fill region seamlessly merging down into below section
+  // 2. Active button fill region
   const activeFillPath = `
-    M ${startX},76 
+    M ${activeStartX},70 
     ${archContour}
-    L ${endX},80 
-    L ${startX},80 
+    L ${activeEndX},74 
+    L ${activeStartX},74 
     Z
   `;
 
-  // Smooth auto-scroll active button into view
+  // Smooth auto-scroll active button into view and center it
   useEffect(() => {
     const activeEl = tabRefs.current[activeTab];
     if (activeEl && scrollRef.current) {
-      activeEl.scrollIntoView({
-        behavior: 'smooth',
-        inline: 'center',
-        block: 'nearest'
-      });
+      const timeoutId = setTimeout(() => {
+        activeEl.scrollIntoView({
+          behavior: 'smooth',
+          inline: 'center',
+          block: 'nearest'
+        });
+      }, 50);
+      return () => clearTimeout(timeoutId);
     }
   }, [activeTab]);
 
@@ -214,26 +217,27 @@ export const CategoryTabs = ({
 
   return (
     <div className="w-full select-none">
-      {/* Horizontal Scrollable Wrapper without Scrollbar */}
       <div 
         ref={scrollRef}
         className="w-full overflow-x-auto no-scrollbar scroll-smooth"
         style={{ WebkitOverflowScrolling: 'touch' }}
       >
         <div 
-          className="relative h-[80px]"
+          className="relative h-[74px]"
           style={{ width: `${totalWidth}px`, minWidth: `${totalWidth}px` }}
         >
           
-          {/* LAYER 1: Inactive Buttons Base Cards (viewBox 0 0 752 80)
-              - Renders inactive button cards with identical trapezoidal shape and size
+          {/* LAYER 1: Inactive Buttons Base Cards
+              - Stacking: idx 'i' is drawn AFTER 'i+1' (reversed map) to create the "left-on-top-of-right" look
+              - Active tab is skipped as it has its own layer
           */}
           <svg
-            viewBox={`0 0 ${totalWidth} 80`}
+            viewBox={`0 0 ${totalWidth} 74`}
             preserveAspectRatio="none"
             className="absolute inset-0 w-full h-full pointer-events-none z-10"
           >
-            {tabs.map((tab, idx) => {
+            {[...tabs].reverse().map((tab) => {
+              const idx = tabs.findIndex(t => t.id === tab.id);
               if (tab.id === activeTab) return null;
               return (
                 <path
@@ -241,17 +245,15 @@ export const CategoryTabs = ({
                   d={getInactiveButtonPath(idx)}
                   fill={styles.inactiveFill}
                   stroke={styles.inactiveBorder}
-                  strokeWidth="1.2"
+                  strokeWidth="2"
                 />
               );
             })}
           </svg>
 
-          {/* LAYER 2: Active Button Fill Layer (z-20)
-              - Renders the active button background fill seamlessly merging into below container
-          */}
+          {/* LAYER 2: Active Button Fill Layer (z-20) */}
           <svg
-            viewBox={`0 0 ${totalWidth} 80`}
+            viewBox={`0 0 ${totalWidth} 74`}
             preserveAspectRatio="none"
             className="absolute inset-0 w-full h-full pointer-events-none z-20"
           >
@@ -267,17 +269,13 @@ export const CategoryTabs = ({
               rx="24" 
               ry="12" 
               fill={styles.activeBorder} 
-              fillOpacity="0.22" 
+              fillOpacity="0.2" 
             />
           </svg>
 
-          {/* LAYER 3: FOREGROUND THE FORWARD ACTIVE BORDER LINE (z-30)
-              - Traces from far-left (0,76) to far-right (752,76)
-              - Exactly matches the active button contour with zero mismatch
-              - Positioned FORWARD so it is crisp and never hidden below any button!
-          */}
+          {/* LAYER 3: FOREGROUND THE FORWARD ACTIVE BORDER LINE (z-30) */}
           <svg
-            viewBox={`0 0 ${totalWidth} 80`}
+            viewBox={`0 0 ${totalWidth} 74`}
             preserveAspectRatio="none"
             className="absolute inset-0 w-full h-full pointer-events-none z-30"
             style={{ filter: styles.activeGlow }}
@@ -286,18 +284,15 @@ export const CategoryTabs = ({
               d={continuousBorderLine}
               fill="none"
               stroke={styles.activeBorder}
-              strokeWidth="2.2"
+              strokeWidth="3"
               strokeLinecap="round"
               strokeLinejoin="round"
             />
           </svg>
 
-          {/* LAYER 4: Interactive Controls Layer (z-40)
-              - Exactly aligned across 8 equal columns (each 94px)
-              - Clickable buttons with icons, labels, and badges
-          */}
+          {/* LAYER 4: Interactive Controls Layer (z-40) */}
           <div className="flex relative z-40 w-full h-full">
-            {tabs.map((tab) => {
+            {tabs.map((tab, idx) => {
               const isActive = activeTab === tab.id;
               const Icon = tab.icon;
 
@@ -307,11 +302,14 @@ export const CategoryTabs = ({
                   ref={(el) => { tabRefs.current[tab.id] = el; }}
                   type="button"
                   onClick={() => handleTabClick(tab.id)}
-                  style={{ width: `${slotWidth}px` }}
+                  style={{ 
+                    width: `${svgButtonWidth}px`,
+                    marginLeft: idx === 0 ? '0px' : `-${svgButtonWidth - slotWidth}px`,
+                    zIndex: isActive ? 100 : 50 - idx
+                  }}
                   className="shrink-0 relative flex flex-col items-center justify-end pb-2 cursor-pointer group h-full p-0 bg-transparent border-none outline-none select-none transition-transform active:scale-[0.98]"
                   aria-label={`Switch to ${tab.label}`}
                 >
-                  {/* Icon & Label */}
                   <div className="flex flex-col items-center pointer-events-none">
                     <div className="h-9 flex items-center justify-center relative mb-0.5">
                       <Icon 
@@ -334,7 +332,6 @@ export const CategoryTabs = ({
               );
             })}
           </div>
-
         </div>
       </div>
     </div>

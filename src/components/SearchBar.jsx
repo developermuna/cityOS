@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Search } from 'lucide-react';
 
-export const SearchBar = ({ onSearch, value = '', onChange }) => {
+export const SearchBar = ({ _onSearch, value = '', onChange }) => {
   const placeholders = [
     "Search for 'Sweets'",
     "Search for 'EatRight'",
@@ -17,7 +17,7 @@ export const SearchBar = ({ onSearch, value = '', onChange }) => {
       setPlaceholderIndex((prev) => (prev + 1) % placeholders.length);
     }, 4000);
     return () => clearInterval(interval);
-  }, []);
+  }, [placeholders.length]);
 
   return (
     <div className="w-full px-4 mt-3 mb-4 select-none">

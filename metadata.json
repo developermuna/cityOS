@@ -1,0 +1,7 @@
+{
+  "name": "cityOS",
+  "description": "Premium food delivery and dining application with lightning fast 15-minute delivery and smart recommendations.",
+  "capabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

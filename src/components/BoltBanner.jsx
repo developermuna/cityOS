@@ -26,7 +26,7 @@ export const BoltBanner = ({ onOrderNow }) => {
           {/* ORDER NOW button */}
           <button
             onClick={onOrderNow}
-            className="mt-3.5 px-4 py-1.5 bg-[#fc8019] hover:bg-[#e07115] active:scale-95 text-white text-[11px] font-black tracking-wider uppercase rounded-full shadow-[0_2px_8px_rgba(252,128,25,0.4)] transition-all cursor-pointer"
+            className="mt-4 px-6 py-2.5 bg-gradient-to-r from-[#fc8019] to-[#ff9800] hover:shadow-orange-500/40 active:scale-95 text-white text-[12px] font-black tracking-widest uppercase rounded-[18px] shadow-[0_4px_15px_rgba(252,128,25,0.45)] transition-all cursor-pointer border border-white/10"
           >
             ORDER NOW
           </button>

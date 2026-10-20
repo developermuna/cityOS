@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
-import { Search, ChevronRight, Plus, Menu } from 'lucide-react';
+import { Search, ChevronRight, Plus } from 'lucide-react';
 import { Header } from './Header';
 import { instamartData } from '../data/mockData';
-import { BurgerIcon, GroceryBagIcon, ClocheIcon, DiscoBallIcon, VegIcon } from './CustomIcons';
 
-export const InstamartPage = ({ onTabChange, onAddToCart, cartItems = {} }) => {
+export const InstamartPage = ({ onTabChange, onAddToCart, _cartItems = {} }) => {
   const [searchTerm, setSearchTerm] = useState('');
 
   return (
