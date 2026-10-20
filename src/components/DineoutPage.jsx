@@ -10,7 +10,7 @@ export const DineoutPage = ({ onTabChange }) => {
     <div className="w-full min-h-screen bg-[#faf7f0] text-slate-800 pb-20 select-none flex flex-col justify-between">
       <div>
         {/* Top Header Section with Cream Theme */}
-        <div className="w-full bg-[#faf7f0] pt-1">
+        <div className="w-full bg-[#ece7db]">
           {/* Location & Trapezoidal Category Tabs with Dineout ACTIVE */}
           <Header
             activeTab="dineout"

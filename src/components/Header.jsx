@@ -23,10 +23,10 @@ export const Header = ({
   const barColor = isCream ? 'bg-[#233f20]' : isWhite ? 'bg-slate-900' : 'bg-white';
 
   return (
-    <header className="w-full px-4 pt-3 pb-0 bg-transparent select-none">
+    <header className="w-full pt-2.5 pb-0 bg-transparent select-none">
       
       {/* FIXED ADDRESS & MENU BAR: Exact same layout, size, and height across all pages */}
-      <div className="flex items-center justify-between h-12 mb-2 w-full">
+      <div className="flex items-center justify-between h-12 mb-1.5 px-4 w-full">
         {/* Location Left */}
         <div 
           onClick={onLocationClick}

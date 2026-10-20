@@ -8,7 +8,7 @@ export const ScenesPage = ({ onTabChange }) => {
   return (
     <div className="w-full min-h-screen bg-[#0a0a0c] text-white pb-12 select-none flex flex-col justify-start">
       {/* Top Header Section with Black Theme */}
-      <div className="w-full bg-[#0a0a0c] pt-1">
+      <div className="w-full bg-[#050507]">
         {/* Location & Trapezoidal Category Tabs with Scenes ACTIVE */}
         <Header
           activeTab="scenes"
