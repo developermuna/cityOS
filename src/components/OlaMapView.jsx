@@ -1,6 +1,11 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import * as maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
+import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url';
+
+if (typeof maplibregl.setWorkerUrl === 'function') {
+  maplibregl.setWorkerUrl(workerUrl);
+}
 
 import { 
   OLA_MAP_STYLES, 
@@ -79,15 +84,7 @@ export const OlaMapView = ({
   useEffect(() => {
     if (!mapContainerRef.current) return;
 
-    // Force disable workers globally
-    try {
-      const lib = maplibregl;
-      if (lib['workerCount'] !== 0) {
-        lib['workerCount'] = 0;
-      }
-    } catch (e) {
-      console.warn('Could not set maplibregl.workerCount', e);
-    }
+    // Map instance initialization
 
     const map = new maplibregl.Map({
       container: mapContainerRef.current,
