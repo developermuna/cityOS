@@ -9,16 +9,24 @@
   html, body {
     scrollbar-width: none;
     -ms-overflow-style: none;
+    overflow-x: clip;
   }
 
   body {
     font-family: -apple-system, BlinkMacSystemFont, 'Plus Jakarta Sans', 'Inter', 'Segoe UI', Roboto, sans-serif;
-    background-color: #0b0717;
+    background-color: #f8fafc;
     color: #020617;
     margin: 0;
     padding: 0;
-    overflow-x: hidden;
+    overflow-x: clip;
   }
+}
+
+.sticky-search-bar {
+  position: -webkit-sticky !important;
+  position: sticky !important;
+  top: 0px !important;
+  z-index: 50 !important;
 }
 
 /* Hide scrollbars globally for a clean mobile-app experience */
@@ -39,14 +47,28 @@
 @keyframes pageFadeIn {
   0% {
     opacity: 0.15;
-    transform: translateY(4px);
   }
   100% {
     opacity: 1;
-    transform: translateY(0);
   }
 }
 
 .page-transition {
   animation: pageFadeIn 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Progressive image shimmer placeholder */
+@keyframes shimmerEffect {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.animate-shimmer {
+  background: linear-gradient(90deg, #f8fafc 0%, #e2e8f0 40%, #f8fafc 80%);
+  background-size: 200% 100%;
+  animation: shimmerEffect 1.5s infinite ease-in-out;
 }

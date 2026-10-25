@@ -102,44 +102,77 @@ export const store99Items = [
   }
 ];
 
-export const mindCategories = [
-  {
-    id: 'sweets',
-    name: "Corner",
-    badgeTitle: "Sweets",
-    image: "https://images.unsplash.com/photo-1601050690597-df0568f70950?w=300&auto=format&fit=crop&q=80"
-  },
-  {
-    id: 'pizzas',
-    name: "Pizzas",
-    image: "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=300&auto=format&fit=crop&q=80"
-  },
-  {
-    id: 'burgers',
-    name: "Burgers",
-    image: "https://images.unsplash.com/photo-1550547660-d9450f859349?w=300&auto=format&fit=crop&q=80"
-  },
-  {
-    id: 'cakes',
-    name: "Cakes",
-    image: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=300&auto=format&fit=crop&q=80"
-  },
-  {
-    id: 'icecream',
-    name: "Ice Cre...",
-    image: "https://images.unsplash.com/photo-1563805042-7684c019e1cb?w=300&auto=format&fit=crop&q=80"
-  },
-  {
-    id: 'biryani',
-    name: "Biryani",
-    image: "https://images.unsplash.com/photo-1589302168068-964664d93dc0?w=300&auto=format&fit=crop&q=80"
-  },
-  {
-    id: 'chinese',
-    name: "Noodles",
-    image: "https://images.unsplash.com/photo-1612927601601-6638404737ce?w=300&auto=format&fit=crop&q=80"
-  }
+export const foodCategories = [
+  { id: 'sweets', name: "Sweets", image: "https://images.unsplash.com/photo-1601050690597-df0568f70950?w=300&auto=format&fit=crop&q=80" },
+  { id: 'pizzas', name: "Pizzas", image: "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=300&auto=format&fit=crop&q=80" },
+  { id: 'burgers', name: "Burgers", image: "https://images.unsplash.com/photo-1550547660-d9450f859349?w=300&auto=format&fit=crop&q=80" },
+  { id: 'cakes', name: "Cakes", image: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=300&auto=format&fit=crop&q=80" },
+  { id: 'icecream', name: "Ice Cream", image: "https://images.unsplash.com/photo-1563805042-7684c019e1cb?w=300&auto=format&fit=crop&q=80" },
+  { id: 'biryani', name: "Biryani", image: "https://images.unsplash.com/photo-1589302168068-964664d93dc0?w=300&auto=format&fit=crop&q=80" },
+  { id: 'chinese', name: "Chinese", image: "https://images.unsplash.com/photo-1612927601601-6638404737ce?w=300&auto=format&fit=crop&q=80" },
+  { id: 'rolls', name: "Rolls", image: "https://images.unsplash.com/photo-1626700051175-6818013e1d4f?w=300&auto=format&fit=crop&q=80" }
 ];
+
+export const shopCategories = [
+  { id: 'for-you', name: "For You", image: "https://images.unsplash.com/photo-1512436991641-6745cdb1723f?w=300&auto=format&fit=crop&q=80" },
+  { id: 'fashion', name: "Fashion", image: "https://images.unsplash.com/photo-1445205170230-053b83016050?w=300&auto=format&fit=crop&q=80" },
+  { id: 'beauty', name: "Beauty", image: "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=300&auto=format&fit=crop&q=80" },
+  { id: 'homes', name: "Homes", image: "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=300&auto=format&fit=crop&q=80" },
+  { id: 'footwear', name: "Footwear", image: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=300&auto=format&fit=crop&q=80" },
+  { id: 'mobiles', name: "Mobiles", image: "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=300&auto=format&fit=crop&q=80" },
+  { id: 'electronics', name: "Electronics", image: "https://images.unsplash.com/photo-1498049794561-7780e7231661?w=300&auto=format&fit=crop&q=80" },
+  { id: 'accessories', name: "Accessories", image: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=300&auto=format&fit=crop&q=80" }
+];
+
+export const groceryCategories = [
+  { id: 'veg', name: "Vegetables", image: "https://images.unsplash.com/photo-1592924357228-91a4daadcfea?w=300&auto=format&fit=crop&q=80" },
+  { id: 'fruits', name: "Fruits", image: "https://images.unsplash.com/photo-1610832958506-aa56368176cf?w=300&auto=format&fit=crop&q=80" },
+  { id: 'dairy', name: "Dairy", image: "https://images.unsplash.com/photo-1550583724-b2692b85b150?w=300&auto=format&fit=crop&q=80" },
+  { id: 'meat', name: "Meat", image: "https://images.unsplash.com/photo-1544025162-d76694265947?w=300&auto=format&fit=crop&q=80" },
+  { id: 'snacks', name: "Snacks", image: "https://images.unsplash.com/photo-1621447509374-f25492d6480e?w=300&auto=format&fit=crop&q=80" },
+  { id: 'drinks', name: "Drinks", image: "https://images.unsplash.com/photo-1581006852262-e4307cf6283a?w=300&auto=format&fit=crop&q=80" },
+  { id: 'frozen', name: "Frozen", image: "https://images.unsplash.com/photo-1563805042-7684c019e1cb?w=300&auto=format&fit=crop&q=80" },
+  { id: 'chocolates', name: "Chocolates", image: "https://images.unsplash.com/photo-1548907040-4baa42d10919?w=300&auto=format&fit=crop&q=80" }
+];
+
+export const serviceCategories = [
+  { id: 'ac', name: "AC Repair", image: "https://images.unsplash.com/photo-1581094288338-2314dddb7ecb?w=300&auto=format&fit=crop&q=80" },
+  { id: 'clean', name: "Cleaning", image: "https://images.unsplash.com/photo-1581578731548-c64695cc6958?w=300&auto=format&fit=crop&q=80" },
+  { id: 'electric', name: "Electrician", image: "https://images.unsplash.com/photo-1621905251189-08b45d6a269e?w=300&auto=format&fit=crop&q=80" },
+  { id: 'plumb', name: "Plumber", image: "https://images.unsplash.com/photo-1504148455328-c376907d081c?w=300&auto=format&fit=crop&q=80" },
+  { id: 'salon', name: "Salon", image: "https://images.unsplash.com/photo-1522337660859-02fbefca4702?w=300&auto=format&fit=crop&q=80" },
+  { id: 'paint', name: "Painter", image: "https://images.unsplash.com/photo-1589939705384-5185137a7f0f?w=300&auto=format&fit=crop&q=80" },
+  { id: 'pest', name: "Pest Ctrl", image: "https://images.unsplash.com/photo-1586771107445-d3ca888129ff?w=300&auto=format&fit=crop&q=80" }
+];
+
+export const rideCategories = [
+  { id: 'auto', name: "Auto", image: "https://images.unsplash.com/photo-1567049063688-66ef83477464?w=300&auto=format&fit=crop&q=80" },
+  { id: 'go', name: "City Go", image: "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?w=300&auto=format&fit=crop&q=80" },
+  { id: 'sedan', name: "Premier", image: "https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=300&auto=format&fit=crop&q=80" },
+  { id: 'bike', name: "Bike", image: "https://images.unsplash.com/photo-1558981403-c5f91cbba527?w=300&auto=format&fit=crop&q=80" },
+  { id: 'rental', name: "Rentals", image: "https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=300&auto=format&fit=crop&q=80" },
+  { id: 'intercity', name: "Intercity", image: "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=300&auto=format&fit=crop&q=80" }
+];
+
+export const travelCategories = [
+  { id: 'flights', name: "Flights", image: "https://images.unsplash.com/photo-1436491865332-7a61a109c0f2?w=300&auto=format&fit=crop&q=80" },
+  { id: 'hotels', name: "Hotels", image: "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=300&auto=format&fit=crop&q=80" },
+  { id: 'trains', name: "Trains", image: "https://images.unsplash.com/photo-1532105956626-9569c03602f6?w=300&auto=format&fit=crop&q=80" },
+  { id: 'buses', name: "Buses", image: "https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=300&auto=format&fit=crop&q=80" },
+  { id: 'holidays', name: "Holidays", image: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=300&auto=format&fit=crop&q=80" },
+  { id: 'visa', name: "Visa", image: "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=300&auto=format&fit=crop&q=80" }
+];
+
+export const rentCategories = [
+  { id: 'flats', name: "Flats", image: "https://images.unsplash.com/photo-1545324418-f1d3c5b53574?w=300&auto=format&fit=crop&q=80" },
+  { id: 'furniture', name: "Furniture", image: "https://images.unsplash.com/photo-1524758631624-e2822e304c36?w=300&auto=format&fit=crop&q=80" },
+  { id: 'appliance', name: "Appliance", image: "https://images.unsplash.com/photo-1550645612-83f5d594b671?w=300&auto=format&fit=crop&q=80" },
+  { id: 'bikes', name: "Bikes", image: "https://images.unsplash.com/photo-1558981403-c5f91cbba527?w=300&auto=format&fit=crop&q=80" },
+  { id: 'fitness', name: "Fitness", image: "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=300&auto=format&fit=crop&q=80" },
+  { id: 'electronics', name: "Electronics", image: "https://images.unsplash.com/photo-1498049794561-7780e7231661?w=300&auto=format&fit=crop&q=80" }
+];
+
+export const mindCategories = foodCategories; // Fallback to food for backward compatibility
 
 export const featuredRestaurants = [
   {
