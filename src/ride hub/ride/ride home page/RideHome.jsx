@@ -1,18 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Heart, MapPin, X, ChevronRight, Navigation } from 'lucide-react';
 import { RideBookingPage } from './RideBookingPage';
+import { OlaMapView } from '../../../components/OlaMapView';
+import { fetchPlaceSuggestions, DEFAULT_COORDINATES, reverseGeocode } from '../../../services/olaMapsService';
 
 export const RideHome = ({ showToast, onBookingModeChange, savedAddresses = [], onToggleFavorite }) => {
   const [pickupQuery, setPickupQuery] = useState('Current Location: Rayagada Station Road');
   const [destinationQuery, setDestinationQuery] = useState('');
+  const [pickupCoord, setPickupCoord] = useState([83.4147, 19.1678]); // [lng, lat] Station Road
+  const [destCoord, setDestCoord] = useState(null); // [lng, lat]
+  const [isBookingPageOpen, setIsBookingPageOpen] = useState(false);
+  const [mapTheme, setMapTheme] = useState('standard');
   const [isMapZoomed, setIsMapZoomed] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState('all');
 
-
   const [pickupSuggestions, setPickupSuggestions] = useState([]);
   const [destSuggestions, setDestSuggestions] = useState([]);
-
-
 
   const placeCategories = [
     { id: 'all', label: 'All', icon: '📍' },
@@ -213,30 +216,60 @@ export const RideHome = ({ showToast, onBookingModeChange, savedAddresses = [], 
       )
     : filteredPlaces;
 
-  // Mock Auto-completion Logic
+  // Real-time Autocomplete Logic powered by Ola Maps Places API
   useEffect(() => {
-    if (pickupQuery.length > 2 && !pickupQuery.startsWith('Current Location')) {
-      const suggestions = rayagadaPlaces.filter(p => 
-        p.title.toLowerCase().includes(pickupQuery.toLowerCase())
-      ).slice(0, 3);
-      setPickupSuggestions(suggestions);
-    } else {
-      setPickupSuggestions([]);
-    }
+    let isCancelled = false;
+    const timer = setTimeout(async () => {
+      if (pickupQuery.length > 2 && !pickupQuery.startsWith('Current Location')) {
+        const results = await fetchPlaceSuggestions(pickupQuery, {
+          location: { lat: DEFAULT_COORDINATES.lat, lng: DEFAULT_COORDINATES.lng },
+        });
+        if (!isCancelled) setPickupSuggestions(results);
+      } else {
+        if (!isCancelled) setPickupSuggestions([]);
+      }
+    }, 280);
+
+    return () => {
+      isCancelled = true;
+      clearTimeout(timer);
+    };
   }, [pickupQuery]);
 
   useEffect(() => {
-    if (destinationQuery.length > 2) {
-      const suggestions = rayagadaPlaces.filter(p => 
-        p.title.toLowerCase().includes(destinationQuery.toLowerCase())
-      ).slice(0, 3);
-      setDestSuggestions(suggestions);
-    } else {
-      setDestSuggestions([]);
-    }
+    let isCancelled = false;
+    const timer = setTimeout(async () => {
+      if (destinationQuery.length > 2) {
+        const results = await fetchPlaceSuggestions(destinationQuery, {
+          location: { lat: DEFAULT_COORDINATES.lat, lng: DEFAULT_COORDINATES.lng },
+        });
+        if (!isCancelled) setDestSuggestions(results);
+      } else {
+        if (!isCancelled) setDestSuggestions([]);
+      }
+    }, 280);
+
+    return () => {
+      isCancelled = true;
+      clearTimeout(timer);
+    };
   }, [destinationQuery]);
 
-  const isReadyForBooking = pickupQuery.trim() !== '' && destinationQuery.trim() !== '';
+  const isReadyForBooking = isBookingPageOpen && pickupQuery.trim() !== '' && destinationQuery.trim() !== '';
+
+  const handleProceedToBooking = (destTitle, coord) => {
+    if (destTitle) setDestinationQuery(destTitle);
+    if (coord) {
+      setDestCoord(coord);
+    } else if (!destCoord) {
+      setDestCoord([83.4189, 19.1725]);
+    }
+    if (!pickupQuery.trim()) {
+      setPickupQuery('Current Location: Rayagada Station Road');
+      setPickupCoord([83.4147, 19.1678]);
+    }
+    setIsBookingPageOpen(true);
+  };
 
   useEffect(() => {
     if (onBookingModeChange) {
@@ -247,14 +280,31 @@ export const RideHome = ({ showToast, onBookingModeChange, savedAddresses = [], 
     }
   }, [isReadyForBooking, onBookingModeChange]);
 
-
-
-
   const handleLocateMe = () => {
-    setIsMapZoomed(true);
-    setPickupQuery('Current Location: Rayagada Station Road');
-    if (showToast) showToast('🛰️ GPS Locked! Present location updated in FROM box.');
-    setTimeout(() => setIsMapZoomed(false), 1200);
+    if (!navigator.geolocation) {
+      setPickupQuery('Current Location: Rayagada Station Road');
+      setPickupCoord([83.4147, 19.1678]);
+      if (showToast) showToast('📍 Location pinned to Station Road');
+      return;
+    }
+
+    if (showToast) showToast('🛰️ Fetching GPS location via Ola Maps...');
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        const lat = pos.coords.latitude;
+        const lng = pos.coords.longitude;
+        setPickupCoord([lng, lat]);
+        const addr = await reverseGeocode(lat, lng);
+        setPickupQuery(addr.name || 'Current GPS Location');
+        if (showToast) showToast(`📍 Locked: ${addr.name || 'Current Location'}`);
+      },
+      () => {
+        setPickupQuery('Current Location: Rayagada Station Road');
+        setPickupCoord([83.4147, 19.1678]);
+        if (showToast) showToast('📍 Using Rayagada Station Road as current location');
+      },
+      { timeout: 8000 }
+    );
   };
 
   const exploreModes = [
@@ -268,7 +318,11 @@ export const RideHome = ({ showToast, onBookingModeChange, savedAddresses = [], 
       <RideBookingPage 
         pickup={pickupQuery}
         destination={destinationQuery}
-        onBack={() => setDestinationQuery('')}
+        pickupCoord={pickupCoord}
+        destCoord={destCoord}
+        onBack={() => {
+          setIsBookingPageOpen(false);
+        }}
         showToast={showToast}
       />
     );
@@ -276,129 +330,22 @@ export const RideHome = ({ showToast, onBookingModeChange, savedAddresses = [], 
 
   return (
     <div className="w-full pb-4 font-sans select-none space-y-4">
-        {/* Map Backdrop & Pickup Point Marker Header (SVG Mock Map) */}
-        <div className={`relative w-full h-48 bg-[#F1F3F4] overflow-hidden border-b border-slate-200/80 transition-all duration-700 ${isMapZoomed ? 'scale-105' : 'scale-100'}`}>
-          
-          {/* We use SVG overlays to maintain the visual design as the primary map interface */}
-        <svg className="absolute inset-0 w-full h-full" fill="none">
-          {/* Base Landmass */}
-          <rect width="100%" height="100%" fill="#F1F3F4" />
-
-          {/* Urban Building Blocks */}
-          <g fill="#e2e8f0" opacity="0.8">
-            <rect x="15" y="15" width="60" height="35" rx="3" />
-            <rect x="90" y="10" width="70" height="40" rx="3" />
-            <rect x="175" y="15" width="80" height="30" rx="3" />
-            <rect x="270" y="20" width="90" height="35" rx="3" />
-
-            <rect x="20" y="115" width="55" height="45" rx="3" />
-            <rect x="140" y="120" width="75" height="40" rx="3" />
-            <rect x="230" y="110" width="80" height="45" rx="3" />
-          </g>
-
-          {/* Water Body (Nagavali River) */}
-          <path d="M 290 0 C 320 50, 360 100, 480 150 L 480 0 Z" fill="#A5C9EB" />
-          <text x="360" y="50" fill="#2563eb" fontSize="9" fontWeight="800" opacity="0.8" transform="rotate(20 360 50)">
-            Nagavali River
-          </text>
-
-          {/* Parks & Greenery */}
-          <path d="M 15 65 Q 65 55, 95 95 Q 45 125, 10 95 Z" fill="#C8E6C9" stroke="#A5D6A7" strokeWidth="1" />
-          <text x="25" y="88" fill="#2e7d32" fontSize="8" fontWeight="900">
-            🌳 Town Park
-          </text>
-
-          {/* White Google Street Grid */}
-          <g strokeLinecap="round" strokeLinejoin="round">
-            <path d="M 0 55 L 450 55 M 0 110 L 450 110 M 0 160 L 450 160" stroke="#D1D5DB" strokeWidth="6" />
-            <path d="M 75 0 L 75 200 M 165 0 L 165 200 M 260 0 L 260 200" stroke="#D1D5DB" strokeWidth="6" />
-
-            <path d="M 0 55 L 450 55 M 0 110 L 450 110 M 0 160 L 450 160" stroke="#FFFFFF" strokeWidth="4" />
-            <path d="M 75 0 L 75 200 M 165 0 L 165 200 M 260 0 L 260 200" stroke="#FFFFFF" strokeWidth="4" />
-
-            {/* Main Highway (NH 326 Yellow Road) */}
-            <path d="M 0 140 C 110 60, 220 170, 450 80" stroke="#E5A100" strokeWidth="10" />
-            <path d="M 0 140 C 110 60, 220 170, 450 80" stroke="#FDE293" strokeWidth="6.5" />
-          </g>
-
-          {/* Live Traffic Overlay Segment */}
-          <g strokeLinecap="round" opacity="0.85">
-            <path d="M 0 140 C 50 110, 80 80, 100 70" stroke="#34A853" strokeWidth="3" />
-            <path d="M 100 70 C 140 50, 180 120, 210 160" stroke="#FBBC04" strokeWidth="3" />
-            <path d="M 210 160 C 250 180, 300 130, 360 95" stroke="#EA4335" strokeWidth="3" />
-          </g>
-
-          {/* Street Labels */}
-          <text x="10" y="132" fill="#5f6368" fontSize="8" fontWeight="800" transform="rotate(-15 10 132)">
-            NH 326 (Station Rd)
-          </text>
-        </svg>
-
-        {/* Surrounding Nearby Drivers Radar */}
-        <div className="absolute top-[50px] left-[175px] text-sm animate-bounce duration-1000">🛵</div>
-        <div className="absolute top-[125px] left-[270px] text-sm animate-pulse">🛺</div>
-
-        {/* Clickable Custom Stylized SVG GPS Pickup Marker Pin */}
-        <div 
-          onClick={handleLocateMe}
-          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-full flex flex-col items-center z-20 cursor-pointer group"
-          title="Click to zoom and lock present location"
-        >
-          {/* Pulsating GPS Accuracy Ring */}
-          <div className="absolute top-full -translate-y-1/2 flex items-center justify-center">
-            <div className="w-12 h-12 rounded-full bg-[#1A73E8]/25 animate-ping" />
-            <div className="w-6 h-6 rounded-full bg-[#1A73E8]/40 animate-pulse" />
-          </div>
-
-          {/* Floating Pill Banner */}
-          <div className="mb-1 bg-slate-900/95 backdrop-blur-md px-3 py-1.5 rounded-full border border-[#4285F4]/80 shadow-xl flex items-center gap-1.5 text-white text-[10px] font-black tracking-tight group-hover:scale-105 transition-transform whitespace-nowrap">
-            <span className="w-2 h-2 rounded-full bg-[#4285F4] animate-ping" />
-            <span>TAP TO LOCK LOCATION</span>
-          </div>
-
-          {/* Custom Stylized SVG Location Pin */}
-          <div className="relative z-10 group-hover:scale-110 transition-transform drop-shadow-md">
-            <svg width="34" height="42" viewBox="0 0 34 42" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <defs>
-                <linearGradient id="homeGpsGrad" x1="17" y1="0" x2="17" y2="40" gradientUnits="userSpaceOnUse">
-                  <stop stopColor="#60A5FA" />
-                  <stop offset="0.5" stopColor="#1D4ED8" />
-                  <stop offset="1" stopColor="#1E3A8A" />
-                </linearGradient>
-              </defs>
-              <path 
-                d="M17 0C7.61116 0 0 7.61116 0 17C0 28 17 40 17 40C17 40 34 28 34 17C34 7.61116 26.3888 0 17 0Z" 
-                fill="url(#homeGpsGrad)" 
-                stroke="#FFFFFF" 
-                strokeWidth="2" 
-              />
-              <circle cx="17" cy="16" r="8" fill="#FFFFFF" />
-              <circle cx="17" cy="16" r="4.5" fill="#1D4ED8" />
-            </svg>
-          </div>
-        </div>
-
-        {/* GPS Target Float Button */}
-        <button
-          type="button"
-          onClick={handleLocateMe}
-          className="absolute bottom-3 right-3 w-9 h-9 bg-white/95 backdrop-blur-md rounded-xl border border-slate-200 shadow-md flex items-center justify-center text-[#1A73E8] hover:bg-white active:scale-95 transition-all z-30 cursor-pointer"
-          title="Locate Me"
-        >
-          <Navigation size={17} className="fill-[#1A73E8]/20" />
-        </button>
-
-        {/* Google Maps Logo Watermark */}
-        <div className="absolute bottom-2 left-3 z-20 flex items-center gap-1.5 pointer-events-none select-none">
-          <div className="bg-white/80 backdrop-blur-xs px-1.5 py-0.5 rounded text-[10px] font-black tracking-tight flex items-center gap-0.5 shadow-2xs border border-slate-200/60">
-            <span className="text-[#4285F4] font-black">G</span>
-            <span className="text-[#EA4335] font-black">o</span>
-            <span className="text-[#FBBC04] font-black">o</span>
-            <span className="text-[#4285F4] font-black">g</span>
-            <span className="text-[#34A853] font-black">l</span>
-            <span className="text-[#EA4335] font-black">e</span>
-          </div>
-        </div>
+      {/* 1. Interactive Ola Maps Header Canvas */}
+      <div className="relative w-full h-52 bg-[#F1F3F4] overflow-hidden border-b border-slate-200/80 shadow-inner">
+        <OlaMapView
+          center={pickupCoord || [DEFAULT_COORDINATES.lng, DEFAULT_COORDINATES.lat]}
+          zoom={14}
+          pickupCoord={pickupCoord}
+          destCoord={destCoord}
+          mapTheme={mapTheme}
+          onThemeChange={setMapTheme}
+          onLocationFound={({ lat, lng, name, address }) => {
+            setPickupCoord([lng, lat]);
+            setPickupQuery(name || address);
+            if (showToast) showToast(`📍 GPS Locked: ${name || 'Present Location'}`);
+          }}
+          showControls={true}
+        />
       </div>
 
       <div className="px-4 space-y-4 -mt-2 relative z-30">
@@ -440,7 +387,13 @@ export const RideHome = ({ showToast, onBookingModeChange, savedAddresses = [], 
                 {pickupSuggestions.map(s => (
                   <div 
                     key={s.id} 
-                    onClick={() => { setPickupQuery(s.title); setPickupSuggestions([]); }}
+                    onClick={() => { 
+                      setPickupQuery(s.title); 
+                      if (s.geometry?.lng && s.geometry?.lat) {
+                        setPickupCoord([s.geometry.lng, s.geometry.lat]);
+                      }
+                      setPickupSuggestions([]); 
+                    }}
                     className="p-3 hover:bg-slate-50 cursor-pointer border-b border-slate-50 last:border-none"
                   >
                     <p className="text-xs font-black text-slate-900">{s.title}</p>
@@ -466,13 +419,21 @@ export const RideHome = ({ showToast, onBookingModeChange, savedAddresses = [], 
                   type="text"
                   value={destinationQuery}
                   onChange={(e) => setDestinationQuery(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && destinationQuery.trim()) {
+                      handleProceedToBooking(destinationQuery, destCoord);
+                    }
+                  }}
                   placeholder="Search Govt offices, Tourist spots, Bus stand..."
                   className="w-full bg-transparent text-sm font-extrabold text-slate-900 placeholder:text-slate-400 outline-none truncate"
                 />
               </div>
               {destinationQuery && (
                 <button 
-                  onClick={() => setDestinationQuery('')}
+                  onClick={() => {
+                    setDestinationQuery('');
+                    setDestCoord(null);
+                  }}
                   className="p-1 rounded-full text-slate-400 hover:text-slate-700 shrink-0"
                 >
                   <X size={16} />
@@ -486,7 +447,11 @@ export const RideHome = ({ showToast, onBookingModeChange, savedAddresses = [], 
                 {destSuggestions.map(s => (
                   <div 
                     key={s.id} 
-                    onClick={() => { setDestinationQuery(s.title); setDestSuggestions([]); }}
+                    onClick={() => { 
+                      const coord = (s.geometry?.lng && s.geometry?.lat) ? [s.geometry.lng, s.geometry.lat] : [83.4189, 19.1725];
+                      handleProceedToBooking(s.title, coord);
+                      setDestSuggestions([]); 
+                    }}
                     className="p-3 hover:bg-slate-50 cursor-pointer border-b border-slate-50 last:border-none"
                   >
                     <p className="text-xs font-black text-slate-900">{s.title}</p>
@@ -494,6 +459,18 @@ export const RideHome = ({ showToast, onBookingModeChange, savedAddresses = [], 
                   </div>
                 ))}
               </div>
+            )}
+
+            {/* Continue / Find Rides Action Button */}
+            {destinationQuery.trim().length > 1 && (
+              <button
+                type="button"
+                onClick={() => handleProceedToBooking(destinationQuery, destCoord)}
+                className="w-full mt-2 py-2 px-4 bg-emerald-600 hover:bg-emerald-700 active:scale-[0.99] text-white text-xs font-black rounded-xl transition flex items-center justify-center gap-2 shadow-sm cursor-pointer"
+              >
+                <span>Find Rides to {destinationQuery.length > 25 ? destinationQuery.substring(0, 25) + '...' : destinationQuery}</span>
+                <ChevronRight size={15} />
+              </button>
             )}
           </div>
         </div>
@@ -544,7 +521,8 @@ export const RideHome = ({ showToast, onBookingModeChange, savedAddresses = [], 
                   <div
                     key={place.id}
                     onClick={() => {
-                      setDestinationQuery(place.title);
+                      const coord = (place.lng && place.lat) ? [place.lng, place.lat] : [83.4189, 19.1725];
+                      handleProceedToBooking(place.title, coord);
                       if (showToast) showToast(`Selected destination: ${place.title}`);
                     }}
                     className="flex items-center justify-between p-3 hover:bg-amber-50/50 transition-colors cursor-pointer group"

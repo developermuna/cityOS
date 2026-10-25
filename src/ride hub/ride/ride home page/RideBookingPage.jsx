@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { ArrowLeft, Navigation, Plus, ChevronDown, User, ChevronRight, Clock, Calendar, X, Check, CreditCard, Tag, Phone, MessageSquare, RotateCcw, Star, Layers, ShieldAlert, PhoneCall, Share2, Send, Siren, ShieldCheck, PhoneOff, Mic, MicOff, Volume2, VolumeX, ThumbsUp } from 'lucide-react';
 import { QRCodeCanvas } from 'qrcode.react';
+import { OlaMapView } from '../../../components/OlaMapView';
+import { fetchRouteDirections, DEFAULT_COORDINATES } from '../../../services/olaMapsService';
 
 const driversData = {
   bike: {
@@ -61,14 +63,19 @@ const driversData = {
   },
 };
 
-
-
-export const RideBookingPage = ({ pickup, destination, onBack, showToast }) => {
+export const RideBookingPage = ({ pickup, destination, pickupCoord, destCoord, onBack, showToast }) => {
   const [selectedRide, setSelectedRide] = useState('bike');
   const vehicleIcon = selectedRide === 'bike' ? '🛵' : selectedRide === 'auto' ? '🛺' : selectedRide === 'mini' ? '🚗' : '🚘';
   const [booked, setBooked] = useState(false);
   const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
   const [isDriverProfileOpen, setIsDriverProfileOpen] = useState(false);
+
+  // Real Ola Maps Route and Vehicle Coordinates
+  const [routeData, setRouteData] = useState(null);
+  const [routeCoordinates, setRouteCoordinates] = useState([]);
+  const [vehicleCoord, setVehicleCoord] = useState(null);
+  const [vehicleHeading, setVehicleHeading] = useState(0);
+  const [currentStepIndex, setCurrentStepIndex] = useState(0);
 
   // SOS Emergency Safety States
   const [isSosModalOpen, setIsSosModalOpen] = useState(false);
@@ -76,10 +83,9 @@ export const RideBookingPage = ({ pickup, destination, onBack, showToast }) => {
   const [sirenActive, setSirenActive] = useState(false);
 
   // Map Style & Control States
-  const [mapTheme, setMapTheme] = useState('standard'); // 'standard' | 'satellite'
+  const [mapTheme, setMapTheme] = useState('standard'); // 'standard' | 'dark' | 'satellite'
   const [isTrafficEnabled, _setIsTrafficEnabled] = useState(true);
   const [mapZoom, _setMapZoom] = useState(1);
-
 
   // Payment & Coupon States
   const [selectedPayment, setSelectedPayment] = useState('Pay Now');
@@ -275,26 +281,71 @@ export const RideBookingPage = ({ pickup, destination, onBack, showToast }) => {
     }, 1500);
   };
 
-  // Real-time Vehicle Tracking Animation along SVG Route Path
+  // Real-time Ola Maps Directions Route Calculation
   useEffect(() => {
-    if (!booked) return;
+    let isCancelled = false;
+    const loadRoute = async () => {
+      const p = pickupCoord 
+        ? { lat: pickupCoord[1], lng: pickupCoord[0] } 
+        : { lat: DEFAULT_COORDINATES.lat, lng: DEFAULT_COORDINATES.lng };
+      const d = destCoord 
+        ? { lat: destCoord[1], lng: destCoord[0] } 
+        : { lat: DEFAULT_COORDINATES.lat + 0.009, lng: DEFAULT_COORDINATES.lng + 0.009 };
+
+      const dir = await fetchRouteDirections({ origin: p, destination: d, mode: selectedRide });
+      if (!isCancelled && dir) {
+        setRouteData(dir);
+        setRouteCoordinates(dir.coordinates);
+        if (dir.coordinates.length > 0) {
+          setVehicleCoord(dir.coordinates[0]);
+        }
+        if (dir.durationSeconds) {
+          setEtaSeconds(dir.durationSeconds);
+        }
+      }
+    };
+
+    loadRoute();
+    return () => { isCancelled = true; };
+  }, [pickupCoord, destCoord, selectedRide]);
+
+  // Real-time Vehicle Tracking Animation along Ola Maps Route Coordinates
+  useEffect(() => {
+    if (!booked || !routeCoordinates || routeCoordinates.length < 2) return;
 
     let animationFrameId;
     let startTime = null;
-    const duration = 14000; // 14s loop along route
+    const duration = 16000; // 16s loop along real roadway polyline
 
     const animate = (timestamp) => {
       if (!startTime) startTime = timestamp;
       const elapsed = timestamp - startTime;
-      const currentProgress = (elapsed % duration) / duration;
+      const progress = (elapsed % duration) / duration;
+      const totalPoints = routeCoordinates.length;
+      const exactIndex = progress * (totalPoints - 1);
+      const idxA = Math.floor(exactIndex);
+      const idxB = Math.min(idxA + 1, totalPoints - 1);
+      const subT = exactIndex - idxA;
 
-      if (routePathRef.current) {
-        try {
-          const totalLen = routePathRef.current.getTotalLength();
-          const point = routePathRef.current.getPointAtLength(currentProgress * totalLen);
-          setVehiclePos({ x: point.x, y: point.y });
-        } catch {
-          // Fallback if SVG not yet rendered
+      const ptA = routeCoordinates[idxA];
+      const ptB = routeCoordinates[idxB];
+      if (ptA && ptB) {
+        const curLng = ptA[0] + (ptB[0] - ptA[0]) * subT;
+        const curLat = ptA[1] + (ptB[1] - ptA[1]) * subT;
+        setVehicleCoord([curLng, curLat]);
+
+        // Calculate heading in degrees
+        const dLng = ptB[0] - ptA[0];
+        const dLat = ptB[1] - ptA[1];
+        if (Math.abs(dLng) > 1e-6 || Math.abs(dLat) > 1e-6) {
+          const angleDeg = (Math.atan2(dLng, dLat) * 180) / Math.PI;
+          setVehicleHeading(angleDeg);
+        }
+
+        // Update step index based on progress
+        if (routeData?.steps?.length) {
+          const stepIdx = Math.min(Math.floor(progress * routeData.steps.length), routeData.steps.length - 1);
+          setCurrentStepIndex(stepIdx);
         }
       }
 
@@ -312,7 +363,7 @@ export const RideBookingPage = ({ pickup, destination, onBack, showToast }) => {
       cancelAnimationFrame(animationFrameId);
       clearInterval(etaInterval);
     };
-  }, [booked]);
+  }, [booked, routeCoordinates, routeData]);
 
   const pickupLabel = pickup ? (pickup.length > 14 ? pickup.substring(0, 14) + '...' : pickup) : 'Rayagada, R...';
   const destLabel = destination ? (destination.length > 14 ? destination.substring(0, 14) + '...' : destination) : 'Rayagada Bu...';
@@ -361,317 +412,45 @@ export const RideBookingPage = ({ pickup, destination, onBack, showToast }) => {
 
   return (
     <div className="w-full relative font-sans select-none bg-slate-100 min-h-screen flex flex-col">
-      {/* 1. Full Ola Maps Header Canvas */}
-      <div className={`relative w-full h-[360px] overflow-hidden shrink-0 transition-colors duration-500 ${mapTheme === 'satellite' ? 'bg-[#121a24]' : 'bg-[#F1F3F4]'}`}>
-        
-        {/* We use SVG overlays to maintain the visual design and performance */}
+      {/* 1. Full Interactive Ola Maps Header Canvas */}
+      <div className="relative w-full h-[360px] overflow-hidden shrink-0 border-b border-slate-200">
+        <OlaMapView
+          center={pickupCoord || [DEFAULT_COORDINATES.lng, DEFAULT_COORDINATES.lat]}
+          zoom={14}
+          pickupCoord={pickupCoord || [DEFAULT_COORDINATES.lng, DEFAULT_COORDINATES.lat]}
+          destCoord={destCoord || [DEFAULT_COORDINATES.lng + 0.009, DEFAULT_COORDINATES.lat + 0.009]}
+          routeCoordinates={routeCoordinates}
+          vehiclePosition={booked ? vehicleCoord : null}
+          vehicleIcon={vehicleIcon}
+          vehicleHeading={vehicleHeading}
+          mapTheme={mapTheme}
+          onThemeChange={setMapTheme}
+          showControls={true}
+        />
 
-        
-        {/* Google Maps Vector Styling Engine */}
-        <div className="absolute inset-0 transition-transform duration-300" style={{ transform: `scale(${mapZoom})` }}>
-          <svg className="absolute inset-0 w-full h-full" fill="none">
-            {/* Background Land Polygons & Blocks */}
-            <rect width="100%" height="100%" fill={mapTheme === 'satellite' ? '#1e293b' : '#f1f3f4'} />
-
-            {/* Urban Building Blocks */}
-            <g fill={mapTheme === 'satellite' ? '#334155' : '#e2e8f0'} opacity="0.7">
-              <rect x="20" y="20" width="70" height="40" rx="4" />
-              <rect x="110" y="25" width="80" height="35" rx="4" />
-              <rect x="210" y="15" width="60" height="50" rx="4" />
-              <rect x="300" y="30" width="90" height="40" rx="4" />
-
-              <rect x="15" y="140" width="45" height="60" rx="4" />
-              <rect x="130" y="145" width="85" height="55" rx="4" />
-              <rect x="235" y="150" width="70" height="45" rx="4" />
-              <rect x="320" y="160" width="75" height="50" rx="4" />
-
-              <rect x="180" y="250" width="90" height="45" rx="4" />
-              <rect x="290" y="260" width="65" height="50" rx="4" />
-            </g>
-
-            {/* Google Water Features (Nagavali River) */}
-            <path 
-              d="M 280 0 C 310 80, 360 140, 480 210 L 480 0 Z" 
-              fill={mapTheme === 'satellite' ? '#0f172a' : '#A5C9EB'} 
-            />
-            <path 
-              d="M 280 0 C 310 80, 360 140, 480 210" 
-              stroke={mapTheme === 'satellite' ? '#1e3a8a' : '#81B4E3'} 
-              strokeWidth="4" 
-            />
-            <text x="350" y="80" fill={mapTheme === 'satellite' ? '#60a5fa' : '#2563eb'} fontSize="10" fontWeight="800" opacity="0.8" transform="rotate(25 350 80)">
-              Nagavali River
-            </text>
-
-            {/* Google Parks & Greenery Polygons */}
-            <g>
-              {/* Town Park */}
-              <path 
-                d="M 20 80 Q 80 70, 110 120 Q 50 150, 10 120 Z" 
-                fill={mapTheme === 'satellite' ? '#14532d' : '#C8E6C9'} 
-                stroke={mapTheme === 'satellite' ? '#166534' : '#A5D6A7'} 
-                strokeWidth="1.5" 
-              />
-              <text x="32" y="110" fill={mapTheme === 'satellite' ? '#86efac' : '#2e7d32'} fontSize="9" fontWeight="900">
-                🌳 Town Garden
-              </text>
-
-              {/* Gandhi Stadium */}
-              <path 
-                d="M 260 210 Q 330 190, 360 240 Q 300 280, 240 250 Z" 
-                fill={mapTheme === 'satellite' ? '#14532d' : '#D8EAD3'} 
-                stroke={mapTheme === 'satellite' ? '#166534' : '#B7E1CD'} 
-                strokeWidth="1.5" 
-              />
-              <text x="270" y="235" fill={mapTheme === 'satellite' ? '#86efac' : '#1b5e20'} fontSize="9" fontWeight="900">
-                🏟️ Gandhi Stadium
-              </text>
-            </g>
-
-            {/* Street Grid Base Network (Standard White Google Streets) */}
-            <g strokeLinecap="round" strokeLinejoin="round">
-              {/* Local Streets Background Casing */}
-              <path d="M 0 70 L 450 70 M 0 135 L 450 135 M 0 210 L 450 210 M 0 280 L 450 280" stroke={mapTheme === 'satellite' ? '#334155' : '#D1D5DB'} strokeWidth="6" />
-              <path d="M 80 0 L 80 360 M 170 0 L 170 360 M 270 0 L 270 360 M 370 0 L 370 360" stroke={mapTheme === 'satellite' ? '#334155' : '#D1D5DB'} strokeWidth="6" />
-
-              {/* Local Streets Inner White Fill */}
-              <path d="M 0 70 L 450 70 M 0 135 L 450 135 M 0 210 L 450 210 M 0 280 L 450 280" stroke={mapTheme === 'satellite' ? '#1e293b' : '#FFFFFF'} strokeWidth="4" />
-              <path d="M 80 0 L 80 360 M 170 0 L 170 360 M 270 0 L 270 360 M 370 0 L 370 360" stroke={mapTheme === 'satellite' ? '#1e293b' : '#FFFFFF'} strokeWidth="4" />
-
-              {/* National Highway (NH 326 / Yellow Google Major Road) */}
-              {/* Highway Outer Casing */}
-              <path d="M 0 220 C 130 90, 240 290, 450 110" stroke="#E5A100" strokeWidth="11" />
-              {/* Highway Inner Yellow Fill */}
-              <path d="M 0 220 C 130 90, 240 290, 450 110" stroke="#FDE293" strokeWidth="7.5" />
-            </g>
-
-            {/* Google Live Traffic Overlay (Green / Yellow / Red) */}
-            {isTrafficEnabled && (
-              <g strokeLinecap="round" opacity="0.9">
-                {/* Clear Traffic (Green) */}
-                <path d="M 0 220 C 60 180, 90 140, 110 120" stroke="#34A853" strokeWidth="3.5" />
-                {/* Moderate Traffic (Yellow) */}
-                <path d="M 110 120 C 150 90, 200 180, 230 240" stroke="#FBBC04" strokeWidth="3.5" />
-                {/* Slow Traffic (Red) */}
-                <path d="M 230 240 C 270 280, 320 200, 380 120" stroke="#EA4335" strokeWidth="3.5" />
-              </g>
-            )}
-
-            {/* Road Names & Street Labels */}
-            <g fill={mapTheme === 'satellite' ? '#94a3b8' : '#5f6368'} fontSize="9" fontWeight="800">
-              <text x="15" y="210" transform="rotate(-15 15 210)">NH 326 (Station Rd)</text>
-              <text x="180" y="130">Market Square Ave</text>
-              <text x="285" y="275">College Rd</text>
-            </g>
-
-            {/* Static Suggested Route Path (Google Maps Alternate Grey) */}
-            {!booked && (
-              <path 
-                d="M 70 220 C 130 90, 240 290, 380 120" 
-                stroke="#BDC1C6" 
-                strokeWidth="6" 
-                strokeLinecap="round" 
-                strokeLinejoin="round"
-              />
-            )}
-
-            {/* Active Primary Google Blue Navigation Polyline */}
-            <g>
-              {/* Outer Glow Halo */}
-              <path 
-                ref={routePathRef}
-                d="M 70 220 C 130 90, 240 290, 380 120" 
-                stroke="#1A73E8" 
-                strokeWidth="11" 
-                strokeLinecap="round" 
-                strokeLinejoin="round"
-                opacity="0.25"
-              />
-              {/* Primary Google Navigation Blue Polyline */}
-              <path 
-                d="M 70 220 C 130 90, 240 290, 380 120" 
-                stroke="#4285F4" 
-                strokeWidth="6.5" 
-                strokeLinecap="round" 
-                strokeLinejoin="round"
-              />
-              {/* Animated Inner Directional Pulse Chevrons */}
-              <path 
-                d="M 70 220 C 130 90, 240 290, 380 120" 
-                stroke="#FFFFFF" 
-                strokeWidth="2.5" 
-                strokeDasharray="6 8"
-                strokeLinecap="round" 
-                className="animate-pulse"
-              />
-            </g>
-          </svg>
-
-          {/* 5 Nearby Captain Markers on Surrounding Streets (Real Rapido Radar) */}
-          {!booked && (
-            <>
-              {nearbyCaptains.map((cap) => (
-                <div 
-                  key={cap.id} 
-                  className="absolute z-20 -translate-x-1/2 -translate-y-1/2 transition-all duration-500 cursor-pointer group"
-                  style={{ left: `${cap.x}px`, top: `${cap.y}px` }}
-                  title={`${cap.name} • ${cap.dist}`}
-                >
-                  <div className="relative flex flex-col items-center">
-                    <div className="hidden group-hover:flex bg-slate-900 text-white text-[9px] font-black px-2 py-0.5 rounded-full whitespace-nowrap mb-0.5 shadow-md border border-amber-400 z-30">
-                      {cap.name} • {cap.dist}
-                    </div>
-                    <div className="relative flex items-center justify-center">
-                      <div className="absolute -inset-1.5 rounded-full bg-amber-400/40 animate-ping" />
-                      <div className="w-7 h-7 rounded-full bg-[#FFC107] border-2 border-slate-950 flex items-center justify-center text-sm shadow-lg text-slate-950 font-black">
-                        {vehicleIcon}
-                      </div>
-                    </div>
-                  </div>
+        {/* Turn-by-Turn GPS Navigation Banner when Booked */}
+        {booked && (
+          <div className="absolute top-4 left-16 right-16 z-30 pointer-events-auto">
+            <div className="bg-slate-950/95 backdrop-blur-md text-white px-3.5 py-2.5 rounded-2xl border border-emerald-400 shadow-2xl flex items-center justify-between">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-black text-sm shrink-0 border border-emerald-500/40">
+                  <Navigation className="w-4 h-4 fill-emerald-400" />
                 </div>
-              ))}
-            </>
-          )}
-
-          {/* Real-time Booked Vehicle Pin moving along route */}
-          {booked && (
-            <div 
-              className="absolute z-30 transition-all duration-100 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center pointer-events-none"
-              style={{ left: `${vehiclePos.x}px`, top: `${vehiclePos.y}px` }}
-            >
-              {/* Floating Live Vehicle Tag */}
-              <div className="bg-slate-900/95 text-white text-[10px] font-black px-2.5 py-1 rounded-full shadow-xl border border-amber-400 flex items-center gap-1.5 mb-1 whitespace-nowrap animate-bounce">
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-                <span className="bg-[#FFD600] text-slate-950 font-mono font-black text-[9px] px-1.5 py-0.5 rounded border border-black/80 uppercase">{activeDriver.licensePlate}</span>
-                <span>• {vehicleIcon}</span>
-                <span className="text-amber-400 font-black">{activeDriver.rating}★</span>
-              </div>
-
-              {/* Vehicle Icon Circle with Glowing Pulse */}
-              <div className="relative flex items-center justify-center">
-                <div className="absolute -inset-2 rounded-full bg-amber-400/40 animate-ping" />
-                <div className="w-10 h-10 rounded-full bg-amber-400 border-2 border-slate-950 shadow-xl flex items-center justify-center text-xl text-slate-900 font-black z-10">
-                  {vehicleIcon}
+                <div className="flex flex-col min-w-0">
+                  <span className="text-[10px] font-black uppercase tracking-wider text-emerald-400">
+                    Ola Maps Navigation • {routeData?.distance || '3.2 km'}
+                  </span>
+                  <span className="text-xs font-bold text-white truncate">
+                    {routeData?.steps?.[currentStepIndex]?.instruction || 'Continue straight along route'}
+                  </span>
                 </div>
               </div>
-            </div>
-          )}
-
-          {/* CUSTOM STYLIZED SVG PICKUP MARKER (Green Pin with Pulsing Accuracy Ring & Floating Badge) */}
-          <div className="absolute top-[220px] left-[70px] -translate-x-1/2 -translate-y-full z-20 flex flex-col items-center pointer-events-auto group">
-            {/* Ground Contact Pulse & Shadow */}
-            <div className="relative flex items-center justify-center">
-              {/* Outer Pulsing Accuracy Ring */}
-              <div className="absolute w-12 h-12 rounded-full bg-emerald-500/20 animate-ping" />
-              <div className="absolute w-8 h-8 rounded-full bg-emerald-500/30 animate-pulse" />
-              
-              {/* Contact Point Ellipse Shadow */}
-              <svg width="32" height="12" viewBox="0 0 32 12" className="absolute bottom-[-6px] pointer-events-none">
-                <ellipse cx="16" cy="6" rx="14" ry="4" fill="#0f172a" opacity="0.3" filter="blur(1px)" />
-              </svg>
-            </div>
-
-            {/* Floating Pickup Location Badge */}
-            <div className="mb-1 bg-slate-900/95 backdrop-blur-md px-3 py-1.5 rounded-full border border-emerald-400/80 shadow-xl flex items-center gap-2 text-white text-[10px] font-black whitespace-nowrap group-hover:scale-105 transition-transform">
-              <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping" />
-              <span className="text-emerald-400 uppercase tracking-wider font-extrabold text-[9px]">PICKUP</span>
-              <span className="text-slate-300">•</span>
-              <span className="font-extrabold">{pickupLabel}</span>
-              <span className="bg-emerald-500/20 text-emerald-300 border border-emerald-500/50 text-[9px] px-1.5 py-0.5 rounded-md font-black">3 min away</span>
-            </div>
-
-            {/* Custom Stylized SVG Pickup Pin */}
-            <div className="relative z-10 hover:scale-110 transition-transform cursor-pointer drop-shadow-lg">
-              <svg width="38" height="48" viewBox="0 0 38 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <defs>
-                  <linearGradient id="pickupPinGrad" x1="19" y1="0" x2="19" y2="44" gradientUnits="userSpaceOnUse">
-                    <stop stopColor="#34D399" />
-                    <stop offset="0.5" stopColor="#10B981" />
-                    <stop offset="1" stopColor="#047857" />
-                  </linearGradient>
-                  <filter id="pickupGlow" x="-2" y="-2" width="42" height="52" filterUnits="userSpaceOnUse">
-                    <feDropShadow dx="0" dy="2" stdDeviation="2" floodColor="#000000" floodOpacity="0.35" />
-                  </filter>
-                </defs>
-                {/* Main Teardrop Pin Path */}
-                <path 
-                  d="M19 0C8.50659 0 0 8.50659 0 19C0 31.5 19 46 19 46C19 46 38 31.5 38 19C38 8.50659 29.4934 0 19 0Z" 
-                  fill="url(#pickupPinGrad)" 
-                  stroke="#FFFFFF" 
-                  strokeWidth="2"
-                  filter="url(#pickupGlow)"
-                />
-                {/* Outer White Ring */}
-                <circle cx="19" cy="18" r="10" fill="#FFFFFF" />
-                {/* Inner Green Dot */}
-                <circle cx="19" cy="18" r="6" fill="#059669" />
-                {/* Center Core GPS Dot */}
-                <circle cx="19" cy="18" r="2.5" fill="#FFFFFF" />
-              </svg>
-            </div>
-          </div>
-
-          {/* CUSTOM STYLIZED SVG DROP-OFF MARKER (Red Target Teardrop Pin with Ground Reticle) */}
-          <div className="absolute top-[120px] left-[380px] -translate-x-1/2 -translate-y-full z-20 flex flex-col items-center pointer-events-auto group">
-            {/* Ground Contact Target Reticle & Shadow */}
-            <div className="relative flex items-center justify-center">
-              {/* Target Crosshair Ground Ring */}
-              <svg width="40" height="16" viewBox="0 0 40 16" className="absolute bottom-[-8px] pointer-events-none">
-                <ellipse cx="20" cy="8" rx="18" ry="6" fill="none" stroke="#EF4444" strokeWidth="1.5" strokeDasharray="3 3" opacity="0.8" />
-                <ellipse cx="20" cy="8" rx="10" ry="3.5" fill="#EF4444" opacity="0.2" />
-                <ellipse cx="20" cy="8" rx="16" ry="5" fill="#0f172a" opacity="0.3" filter="blur(1px)" />
-              </svg>
-            </div>
-
-            {/* Floating Drop-off Location Badge */}
-            <div className="mb-1 bg-slate-900/95 backdrop-blur-md px-3 py-1.5 rounded-full border border-rose-400/80 shadow-xl flex items-center gap-2 text-white text-[10px] font-black whitespace-nowrap group-hover:scale-105 transition-transform">
-              <span className="w-2.5 h-2.5 rounded-full bg-rose-500 animate-pulse" />
-              <span className="text-rose-400 uppercase tracking-wider font-extrabold text-[9px]">DROP-OFF</span>
-              <span className="text-slate-300">•</span>
-              <span className="font-extrabold">{destLabel}</span>
-              <span className="bg-rose-500/20 text-rose-300 border border-rose-500/50 text-[9px] px-1.5 py-0.5 rounded-md font-black">11 min trip</span>
-            </div>
-
-            {/* Custom Stylized SVG Drop-off Pin */}
-            <div className="relative z-10 hover:scale-110 transition-transform cursor-pointer drop-shadow-xl">
-              <svg width="42" height="52" viewBox="0 0 42 52" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <defs>
-                  <linearGradient id="dropPinGrad" x1="21" y1="0" x2="21" y2="48" gradientUnits="userSpaceOnUse">
-                    <stop stopColor="#F87171" />
-                    <stop offset="0.5" stopColor="#EF4444" />
-                    <stop offset="1" stopColor="#B91C1C" />
-                  </linearGradient>
-                  <filter id="dropGlow" x="-2" y="-2" width="46" height="56" filterUnits="userSpaceOnUse">
-                    <feDropShadow dx="0" dy="3" stdDeviation="2.5" floodColor="#000000" floodOpacity="0.4" />
-                  </filter>
-                </defs>
-                {/* Outer Teardrop SVG Pin Frame */}
-                <path 
-                  d="M21 0C9.40202 0 0 9.40202 0 21C0 34.5 21 50 21 50C21 50 42 34.5 42 21C42 9.40202 32.598 0 21 0Z" 
-                  fill="url(#dropPinGrad)" 
-                  stroke="#FFFFFF" 
-                  strokeWidth="2.5"
-                  filter="url(#dropGlow)"
-                />
-                {/* White Concentric Ring */}
-                <circle cx="21" cy="20" r="11" fill="#FFFFFF" />
-                {/* Inner Red Target Ring */}
-                <circle cx="21" cy="20" r="7.5" fill="#EF4444" />
-                {/* Target Bullseye Square / Dot */}
-                <rect x="18" y="17" width="6" height="6" rx="1.5" fill="#FFFFFF" />
-              </svg>
-            </div>
-          </div>
-        </div>
-
-        {/* 5 Captains found nearby Floating Pill Banner when selecting ride */}
-        {!booked && !isSearchingCaptain && (
-          <div className="absolute top-4 left-16 z-30 pointer-events-auto">
-            <div className="bg-slate-900/90 backdrop-blur-md text-white px-3 py-1.5 rounded-full border border-amber-400 shadow-lg flex items-center gap-2 text-xs font-black animate-pulse">
-              <span className="w-2 h-2 rounded-full bg-amber-400 animate-ping" />
-              <span className="text-amber-400">5 Captains found nearby</span>
-              <span className="text-slate-400">•</span>
-              <span className="text-slate-200">2 min pickup</span>
+              <div className="text-right shrink-0 pl-2">
+                <span className="text-xs font-black text-emerald-400 block font-mono">
+                  {formatEta(etaSeconds)}
+                </span>
+                <span className="text-[9px] text-slate-400 font-bold">ETA</span>
+              </div>
             </div>
           </div>
         )}
@@ -686,34 +465,17 @@ export const RideBookingPage = ({ pickup, destination, onBack, showToast }) => {
           <ArrowLeft size={18} className="stroke-[2.5]" />
         </button>
 
-        {/* Floating Google Maps Style Controls (Right Stack) */}
-        <div className="absolute right-3 top-4 flex flex-col gap-2 z-30">
-          {/* Map Layer Theme Toggle (Standard / Satellite) */}
-          <button 
-            type="button" 
-            onClick={() => {
-              const nextTheme = mapTheme === 'standard' ? 'satellite' : 'standard';
-              setMapTheme(nextTheme);
-              if (showToast) showToast(`Switched to ${nextTheme} map layer`);
-            }} 
-            className={`w-9 h-9 rounded-xl border flex items-center justify-center transition-all cursor-pointer shadow-md ${
-              mapTheme === 'satellite' ? 'bg-slate-900 text-amber-400 border-slate-950' : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
-            }`}
-            title="Toggle Satellite / Standard"
-          >
-            <Layers size={16} />
-          </button>
-
-          {/* Center GPS Location Target Button */}
-          <button 
-            type="button" 
-            onClick={() => showToast && showToast('Centering on your location...')} 
-            className="w-9 h-9 bg-white rounded-xl border border-slate-200 flex items-center justify-center text-[#1A73E8] hover:bg-slate-50 active:scale-95 transition-all cursor-pointer shadow-md"
-            title="Center on my location"
-          >
-            <Navigation size={17} className="fill-[#1A73E8]/20" />
-          </button>
-        </div>
+        {/* 5 Captains found nearby Floating Pill Banner when selecting ride */}
+        {!booked && !isSearchingCaptain && (
+          <div className="absolute top-4 left-16 z-30 pointer-events-auto">
+            <div className="bg-slate-900/90 backdrop-blur-md text-white px-3 py-1.5 rounded-full border border-amber-400 shadow-lg flex items-center gap-2 text-xs font-black animate-pulse">
+              <span className="w-2 h-2 rounded-full bg-amber-400 animate-ping" />
+              <span className="text-amber-400">5 Captains found nearby</span>
+              <span className="text-slate-400">•</span>
+              <span className="text-slate-200">2 min pickup</span>
+            </div>
+          </div>
+        )}
 
         {/* Add Stop Floating Pill Button */}
         {!booked && (
@@ -728,21 +490,6 @@ export const RideBookingPage = ({ pickup, destination, onBack, showToast }) => {
             </button>
           </div>
         )}
-
-        {/* AUTHENTIC GOOGLE WATERMARK & COPYRIGHT FOOTER */}
-        <div className="absolute bottom-2 left-3 z-20 flex items-center gap-2 pointer-events-none select-none">
-          <div className="bg-white/80 backdrop-blur-xs px-2 py-0.5 rounded text-[11px] font-black tracking-tight flex items-center gap-0.5 shadow-2xs border border-slate-200/60">
-            <span className="text-[#4285F4] font-black">G</span>
-            <span className="text-[#EA4335] font-black">o</span>
-            <span className="text-[#FBBC04] font-black">o</span>
-            <span className="text-[#4285F4] font-black">g</span>
-            <span className="text-[#34A853] font-black">l</span>
-            <span className="text-[#EA4335] font-black">e</span>
-          </div>
-          <span className="text-[9px] font-semibold text-slate-600 bg-white/70 px-1.5 py-0.5 rounded">
-            ©2026 Google • Map data
-          </span>
-        </div>
       </div>
 
       {/* 2. MAIN SHEET CONTENT */}
