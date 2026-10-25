@@ -2,13 +2,16 @@ import React, { useState, useEffect } from 'react';
 import { Search, Heart, MapPin, X, ChevronRight, Navigation } from 'lucide-react';
 import { RideBookingPage } from '../RideBookingPage/RideBookingPage';
 import { OlaMapView } from '@/components/OlaMapView';
-import { fetchPlaceSuggestions, DEFAULT_COORDINATES, reverseGeocode } from '@/services/olaMapsService';
+import { fetchPlaceSuggestions, DEFAULT_COORDINATES, reverseGeocode, fetchRouteDirections } from '@/services/olaMapsService';
 
 export const RideHome = ({ showToast, onBookingModeChange, savedAddresses = [], onToggleFavorite }) => {
   const [pickupQuery, setPickupQuery] = useState('Current Location: Rayagada Station Road');
   const [destinationQuery, setDestinationQuery] = useState('');
   const [pickupCoord, setPickupCoord] = useState([83.4147, 19.1678]); // [lng, lat] Station Road
   const [destCoord, setDestCoord] = useState(null); // [lng, lat]
+  const [routeCoordinates, setRouteCoordinates] = useState([]);
+  const [routeInfo, setRouteInfo] = useState(null);
+  const [isCalculatingRoute, setIsCalculatingRoute] = useState(false);
   const [isBookingPageOpen, setIsBookingPageOpen] = useState(false);
   const [mapTheme, setMapTheme] = useState('standard');
   const [isMapZoomed, setIsMapZoomed] = useState(false);
@@ -255,6 +258,31 @@ export const RideHome = ({ showToast, onBookingModeChange, savedAddresses = [], 
     };
   }, [destinationQuery]);
 
+  // Automatically calculate route and polyline coordinates between pickup and destination
+  useEffect(() => {
+    if (!pickupCoord || !destCoord) {
+      setRouteCoordinates([]);
+      setRouteInfo(null);
+      return;
+    }
+
+    let isCancelled = false;
+    const calculateRoute = async () => {
+      setIsCalculatingRoute(true);
+      const dir = await fetchRouteDirections(pickupCoord, destCoord);
+      if (!isCancelled && dir) {
+        setRouteCoordinates(dir.coordinates);
+        setRouteInfo(dir);
+        setIsCalculatingRoute(false);
+      }
+    };
+
+    calculateRoute();
+    return () => {
+      isCancelled = true;
+    };
+  }, [pickupCoord, destCoord]);
+
   const isReadyForBooking = isBookingPageOpen && pickupQuery.trim() !== '' && destinationQuery.trim() !== '';
 
   const handleProceedToBooking = (destTitle, coord) => {
@@ -262,10 +290,10 @@ export const RideHome = ({ showToast, onBookingModeChange, savedAddresses = [], 
     if (coord) {
       setDestCoord(coord);
     } else if (!destCoord) {
-      setDestCoord([83.4189, 19.1725]);
+      setDestCoord([83.4210, 19.1725]);
     }
     if (!pickupQuery.trim()) {
-      setPickupQuery('Current Location: Rayagada Station Road');
+      setPickupQuery('Rayagada Railway Station Road');
       setPickupCoord([83.4147, 19.1678]);
     }
     setIsBookingPageOpen(true);
@@ -281,29 +309,31 @@ export const RideHome = ({ showToast, onBookingModeChange, savedAddresses = [], 
   }, [isReadyForBooking, onBookingModeChange]);
 
   const handleLocateMe = () => {
+    if (showToast) showToast('🛰️ Fetching exact GPS location via Ola Maps...');
     if (!navigator.geolocation) {
-      setPickupQuery('Current Location: Rayagada Station Road');
-      setPickupCoord([83.4147, 19.1678]);
+      setPickupQuery('Rayagada Railway Station Road');
+      setPickupCoord([DEFAULT_COORDINATES.lng, DEFAULT_COORDINATES.lat]);
       if (showToast) showToast('📍 Location pinned to Station Road');
       return;
     }
 
-    if (showToast) showToast('🛰️ Fetching GPS location via Ola Maps...');
     navigator.geolocation.getCurrentPosition(
       async (pos) => {
         const lat = pos.coords.latitude;
         const lng = pos.coords.longitude;
         setPickupCoord([lng, lat]);
         const addr = await reverseGeocode(lat, lng);
-        setPickupQuery(addr.name || 'Current GPS Location');
-        if (showToast) showToast(`📍 Locked: ${addr.name || 'Current Location'}`);
+        const resolvedName = addr?.name || addr?.formattedAddress || 'My Current Location';
+        setPickupQuery(resolvedName);
+        if (showToast) showToast(`📍 Locked: ${resolvedName}`);
       },
-      () => {
-        setPickupQuery('Current Location: Rayagada Station Road');
-        setPickupCoord([83.4147, 19.1678]);
-        if (showToast) showToast('📍 Using Rayagada Station Road as current location');
+      (err) => {
+        console.warn('Geolocation error:', err);
+        setPickupQuery('Rayagada Railway Station Road');
+        setPickupCoord([DEFAULT_COORDINATES.lng, DEFAULT_COORDINATES.lat]);
+        if (showToast) showToast('📍 Defaulted to Station Road (GPS Permission Denied)');
       },
-      { timeout: 8000 }
+      { timeout: 8000, enableHighAccuracy: true }
     );
   };
 
@@ -337,6 +367,7 @@ export const RideHome = ({ showToast, onBookingModeChange, savedAddresses = [], 
           zoom={14}
           pickupCoord={pickupCoord}
           destCoord={destCoord}
+          routeCoordinates={routeCoordinates}
           mapTheme={mapTheme}
           onThemeChange={setMapTheme}
           onLocationFound={({ lat, lng, name, address }) => {
@@ -448,9 +479,11 @@ export const RideHome = ({ showToast, onBookingModeChange, savedAddresses = [], 
                   <div 
                     key={s.id} 
                     onClick={() => { 
-                      const coord = (s.geometry?.lng && s.geometry?.lat) ? [s.geometry.lng, s.geometry.lat] : [83.4189, 19.1725];
-                      handleProceedToBooking(s.title, coord);
-                      setDestSuggestions([]); 
+                      const coord = (s.lng && s.lat) ? [s.lng, s.lat] : (s.geometry?.lng && s.geometry?.lat) ? [s.geometry.lng, s.geometry.lat] : [83.4210, 19.1725];
+                      setDestinationQuery(s.title);
+                      setDestCoord(coord);
+                      setDestSuggestions([]);
+                      if (showToast) showToast(`📍 Destination set: ${s.title}`);
                     }}
                     className="p-3 hover:bg-slate-50 cursor-pointer border-b border-slate-50 last:border-none"
                   >
@@ -461,8 +494,35 @@ export const RideHome = ({ showToast, onBookingModeChange, savedAddresses = [], 
               </div>
             )}
 
+            {/* Live Navigation Route Summary Banner */}
+            {routeInfo && (
+              <div className="mt-2.5 bg-gradient-to-r from-emerald-600 via-teal-700 to-emerald-800 text-white p-3 rounded-xl shadow-md flex items-center justify-between border border-emerald-400/40 animate-in fade-in duration-200">
+                <div className="flex items-center gap-2 min-w-0">
+                  <div className="w-7 h-7 rounded-lg bg-white/20 backdrop-blur-md flex items-center justify-center shrink-0 text-sm">
+                    🛵
+                  </div>
+                  <div className="flex flex-col min-w-0">
+                    <span className="text-[10px] font-black uppercase tracking-wider text-emerald-200">
+                      Route • {routeInfo.distance} (~{routeInfo.durationMins} mins)
+                    </span>
+                    <span className="text-xs font-bold text-white truncate">
+                      Ready to book to {destinationQuery}
+                    </span>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => handleProceedToBooking(destinationQuery, destCoord)}
+                  className="bg-amber-400 hover:bg-amber-300 active:scale-95 text-slate-950 px-3 py-1.5 rounded-lg text-xs font-black shrink-0 transition-transform shadow flex items-center gap-1 cursor-pointer"
+                >
+                  <span>Select Ride</span>
+                  <ChevronRight size={13} className="stroke-[3]" />
+                </button>
+              </div>
+            )}
+
             {/* Continue / Find Rides Action Button */}
-            {destinationQuery.trim().length > 1 && (
+            {!routeInfo && destinationQuery.trim().length > 1 && (
               <button
                 type="button"
                 onClick={() => handleProceedToBooking(destinationQuery, destCoord)}
@@ -521,9 +581,10 @@ export const RideHome = ({ showToast, onBookingModeChange, savedAddresses = [], 
                   <div
                     key={place.id}
                     onClick={() => {
-                      const coord = (place.lng && place.lat) ? [place.lng, place.lat] : [83.4189, 19.1725];
-                      handleProceedToBooking(place.title, coord);
-                      if (showToast) showToast(`Selected destination: ${place.title}`);
+                      const coord = (place.lng && place.lat) ? [place.lng, place.lat] : [83.4210, 19.1725];
+                      setDestinationQuery(place.title);
+                      setDestCoord(coord);
+                      if (showToast) showToast(`📍 Destination selected: ${place.title}`);
                     }}
                     className="flex items-center justify-between p-3 hover:bg-amber-50/50 transition-colors cursor-pointer group"
                   >

@@ -498,6 +498,33 @@ export const RideBookingPage = ({ pickup, destination, pickupCoord, destCoord, o
         <div className="bg-white rounded-t-[32px] border-t border-slate-200 -mt-6 relative z-30 flex-grow flex flex-col pb-36">
           <div className="p-4 space-y-3">
             <div className="w-10 h-1 bg-slate-300 rounded-full mx-auto -mt-1 mb-1" />
+
+            {/* Rapido-Style From & To Route Details Strip */}
+            <div className="bg-slate-50 border border-slate-200/90 rounded-2xl p-3 flex items-center justify-between shadow-2xs">
+              <div className="flex flex-col gap-1.5 min-w-0 pr-2">
+                <div className="flex items-center gap-2">
+                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 shrink-0 shadow-sm" />
+                  <span className="text-xs font-black text-slate-800 truncate">
+                    {pickup || 'Pickup: Rayagada Station Road'}
+                  </span>
+                </div>
+                <div className="ml-[4px] w-[1px] h-2 bg-slate-300 border-l border-dashed" />
+                <div className="flex items-center gap-2">
+                  <span className="w-2.5 h-2.5 rounded-full bg-rose-500 shrink-0 shadow-sm" />
+                  <span className="text-xs font-black text-slate-800 truncate">
+                    {destination || 'Drop: Rayagada Town Center'}
+                  </span>
+                </div>
+              </div>
+              <div className="text-right shrink-0 bg-white border border-slate-200 px-2.5 py-1.5 rounded-xl shadow-2xs">
+                <span className="text-xs font-black text-emerald-700 block">
+                  {routeData?.distance || '3.2 km'}
+                </span>
+                <span className="text-[10px] font-bold text-slate-400">
+                  ~{routeData?.durationMins || 10} mins
+                </span>
+              </div>
+            </div>
             
             {scheduledLabel ? (
               <div className="bg-amber-50 border border-amber-200 rounded-2xl p-2.5 flex items-center justify-between text-xs font-extrabold text-amber-900">

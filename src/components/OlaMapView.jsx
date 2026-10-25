@@ -7,14 +7,16 @@ import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url';
 if (typeof maplibregl.setWorkerUrl === 'function') {
   maplibregl.setWorkerUrl(workerUrl);
 }
+
 import { 
   getOlaMapsApiKey, 
-  isOlaMapsConfigured, 
   OLA_MAP_STYLES, 
+  SATELLITE_STYLE,
+  DARK_FALLBACK_STYLE,
   DEFAULT_COORDINATES, 
   reverseGeocode 
 } from '../services/olaMapsService';
-import { Layers, Navigation, Plus, Minus } from 'lucide-react';
+import { Layers, Navigation, Plus, Minus, MapPin, Flag } from 'lucide-react';
 
 /**
  * Fallback OSM raster style when Ola Maps key is not yet provided or pending
@@ -47,6 +49,8 @@ export const OlaMapView = ({
   zoom = 14,
   pickupCoord = null, // [lng, lat]
   destCoord = null,   // [lng, lat]
+  pickupName = '',
+  destName = '',
   routeCoordinates = null, // Array of [lng, lat]
   vehiclePosition = null, // [lng, lat]
   vehicleIcon = '🛵',
@@ -56,7 +60,7 @@ export const OlaMapView = ({
   onMapClick = null,
   onLocationFound = null,
   showControls = true,
-  mapTheme = 'standard', // 'standard' | 'dark' | 'satellite'
+  mapTheme = 'standard', // 'standard' | 'satellite' | 'dark'
   onThemeChange = null,
 }) => {
   const mapContainerRef = useRef(null);
@@ -67,15 +71,28 @@ export const OlaMapView = ({
   const surroundingDriversRef = useRef([]);
 
   const [isLocating, setIsLocating] = useState(false);
+  const [styleBadge, setStyleBadge] = useState('Standard Map');
 
-  // Determine current style URL based on theme and API key
+  // Determine current style URL or Style Object based on theme and API key
   const getStyleForTheme = useCallback((theme) => {
+    if (theme === 'satellite') {
+      return SATELLITE_STYLE;
+    }
     const key = getOlaMapsApiKey();
-    if (!key) return FALLBACK_STYLE;
+    if (!key) {
+      return theme === 'dark' ? DARK_FALLBACK_STYLE : FALLBACK_STYLE;
+    }
 
     let styleUrl = OLA_MAP_STYLES[theme] || OLA_MAP_STYLES.standard;
     return `${styleUrl}?api_key=${key}`;
   }, []);
+
+  // Update style notification badge text
+  useEffect(() => {
+    if (mapTheme === 'satellite') setStyleBadge('🛰️ Real Satellite Imagery');
+    else if (mapTheme === 'dark') setStyleBadge('🌙 Night Dark Map');
+    else setStyleBadge('🗺️ Standard Map');
+  }, [mapTheme]);
 
   // Initialize Map
   useEffect(() => {
@@ -103,9 +120,9 @@ export const OlaMapView = ({
     mapInstanceRef.current = map;
 
     map.on('error', (e) => {
-      // If Ola Maps tile request fails (e.g. invalid key or unwhitelisted domain), fallback gracefully
+      // If Ola Maps tile request fails, gracefully fallback
       if (e?.error?.status === 401 || e?.error?.status === 403) {
-        console.warn('Ola Maps authorization error, switching to backup visual layer', e);
+        console.warn('[OlaMaps] Tile authorization error, switching to backup visual layer');
         try {
           map.setStyle(FALLBACK_STYLE);
         } catch (_) {}
@@ -130,24 +147,7 @@ export const OlaMapView = ({
     };
   }, []); // Run once on mount
 
-  // Handle map style / theme change
-  useEffect(() => {
-    const map = mapInstanceRef.current;
-    if (!map) return;
-
-    const newStyle = getStyleForTheme(mapTheme);
-    try {
-      map.setStyle(newStyle);
-      map.once('style.load', () => {
-        // Re-add route layer after style reload if exists
-        updateRouteLayer(routeCoordinates);
-      });
-    } catch (err) {
-      console.warn('Error updating map style:', err);
-    }
-  }, [mapTheme, getStyleForTheme]);
-
-  // Update Route Polyline Layer
+  // Update Route Polyline Layer with Rapido-style glowing casing & line
   const updateRouteLayer = useCallback((coords) => {
     const map = mapInstanceRef.current;
     if (!map || !map.isStyleLoaded()) return;
@@ -174,7 +174,7 @@ export const OlaMapView = ({
           data: geojson,
         });
 
-        // Outer Glow/Casing
+        // Outer Glow / Casing for contrast
         map.addLayer({
           id: routeCasingId,
           type: 'line',
@@ -184,13 +184,13 @@ export const OlaMapView = ({
             'line-cap': 'round',
           },
           paint: {
-            'line-color': '#1d4ed8',
+            'line-color': '#064e3b', // Deep emerald casing
             'line-width': 8,
-            'line-opacity': 0.4,
+            'line-opacity': 0.6,
           },
         });
 
-        // Main Route Polyline
+        // Main Route Polyline (Vibrant Emerald / Cyan)
         map.addLayer({
           id: routeLayerId,
           type: 'line',
@@ -200,7 +200,7 @@ export const OlaMapView = ({
             'line-cap': 'round',
           },
           paint: {
-            'line-color': '#2563eb',
+            'line-color': '#10b981', // Vibrant emerald route line
             'line-width': 5,
             'line-opacity': 0.95,
           },
@@ -214,7 +214,7 @@ export const OlaMapView = ({
           new maplibregl.LngLatBounds(coords[0], coords[0])
         );
         map.fitBounds(bounds, {
-          padding: { top: 60, bottom: 60, left: 50, right: 50 },
+          padding: { top: 60, bottom: 60, left: 60, right: 60 },
           maxZoom: 16,
           duration: 900,
         });
@@ -228,6 +228,23 @@ export const OlaMapView = ({
     }
   }, []);
 
+  // Handle map style / theme change
+  useEffect(() => {
+    const map = mapInstanceRef.current;
+    if (!map) return;
+
+    const newStyle = getStyleForTheme(mapTheme);
+    try {
+      map.setStyle(newStyle);
+      map.once('style.load', () => {
+        // Re-add route layer after style reload if exists
+        updateRouteLayer(routeCoordinates);
+      });
+    } catch (err) {
+      console.warn('Error updating map style:', err);
+    }
+  }, [mapTheme, getStyleForTheme, routeCoordinates, updateRouteLayer]);
+
   // Sync Route Coordinates
   useEffect(() => {
     const map = mapInstanceRef.current;
@@ -240,7 +257,7 @@ export const OlaMapView = ({
     }
   }, [routeCoordinates, updateRouteLayer]);
 
-  // Sync Pickup Marker
+  // Sync Rapido-Style Pickup Marker (Green Dot + Pulsing Wave + Tooltip Chip)
   useEffect(() => {
     const map = mapInstanceRef.current;
     if (!map) return;
@@ -248,19 +265,20 @@ export const OlaMapView = ({
     if (pickupCoord && Array.isArray(pickupCoord)) {
       if (!pickupMarkerRef.current) {
         const el = document.createElement('div');
-        el.className = 'ola-pickup-marker flex flex-col items-center cursor-pointer';
+        el.className = 'rapido-pickup-marker flex flex-col items-center cursor-pointer select-none';
         el.innerHTML = `
           <div class="relative flex items-center justify-center">
             <span class="animate-ping absolute inline-flex h-8 w-8 rounded-full bg-emerald-400 opacity-75"></span>
-            <div class="w-7 h-7 rounded-full bg-emerald-600 text-white flex items-center justify-center shadow-lg border-2 border-white font-bold text-xs">
+            <div class="relative w-8 h-8 rounded-full bg-emerald-600 text-white flex items-center justify-center shadow-2xl border-2 border-white font-black text-sm z-10">
               📍
             </div>
           </div>
-          <span class="bg-slate-900/90 text-white text-[9px] font-bold px-1.5 py-0.5 rounded shadow mt-1 whitespace-nowrap">
-            Pickup
-          </span>
+          <div class="bg-slate-950/95 text-white text-[9px] font-black px-2 py-0.5 rounded-full shadow-lg border border-emerald-400/50 mt-1 whitespace-nowrap flex items-center gap-1 backdrop-blur-sm">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+            <span>PICKUP</span>
+          </div>
         `;
-        pickupMarkerRef.current = new maplibregl.Marker({ element: el })
+        pickupMarkerRef.current = new maplibregl.Marker({ element: el, anchor: 'bottom' })
           .setLngLat(pickupCoord)
           .addTo(map);
       } else {
@@ -272,7 +290,7 @@ export const OlaMapView = ({
     }
   }, [pickupCoord]);
 
-  // Sync Destination Marker
+  // Sync Rapido-Style Destination Marker (Crimson Pin + Tooltip Chip)
   useEffect(() => {
     const map = mapInstanceRef.current;
     if (!map) return;
@@ -280,18 +298,20 @@ export const OlaMapView = ({
     if (destCoord && Array.isArray(destCoord)) {
       if (!destMarkerRef.current) {
         const el = document.createElement('div');
-        el.className = 'ola-dest-marker flex flex-col items-center cursor-pointer';
+        el.className = 'rapido-dest-marker flex flex-col items-center cursor-pointer select-none';
         el.innerHTML = `
           <div class="relative flex items-center justify-center">
-            <div class="w-7 h-7 rounded-full bg-rose-600 text-white flex items-center justify-center shadow-lg border-2 border-white font-bold text-xs">
+            <span class="animate-ping absolute inline-flex h-8 w-8 rounded-full bg-rose-400 opacity-60"></span>
+            <div class="relative w-8 h-8 rounded-full bg-rose-600 text-white flex items-center justify-center shadow-2xl border-2 border-white font-black text-sm z-10">
               🏁
             </div>
           </div>
-          <span class="bg-rose-900/90 text-white text-[9px] font-bold px-1.5 py-0.5 rounded shadow mt-1 whitespace-nowrap">
-            Dropoff
-          </span>
+          <div class="bg-rose-950/95 text-white text-[9px] font-black px-2 py-0.5 rounded-full shadow-lg border border-rose-400/50 mt-1 whitespace-nowrap flex items-center gap-1 backdrop-blur-sm">
+            <span class="w-1.5 h-1.5 rounded-full bg-rose-400"></span>
+            <span>DROP</span>
+          </div>
         `;
-        destMarkerRef.current = new maplibregl.Marker({ element: el })
+        destMarkerRef.current = new maplibregl.Marker({ element: el, anchor: 'bottom' })
           .setLngLat(destCoord)
           .addTo(map);
       } else {
@@ -303,7 +323,24 @@ export const OlaMapView = ({
     }
   }, [destCoord]);
 
-  // Sync Moving Vehicle Marker
+  // Fit bounds when both pickup and destination exist and no route polyline is yet loaded
+  useEffect(() => {
+    const map = mapInstanceRef.current;
+    if (!map || routeCoordinates?.length > 1) return;
+
+    if (pickupCoord && destCoord) {
+      try {
+        const bounds = new maplibregl.LngLatBounds(pickupCoord, destCoord);
+        map.fitBounds(bounds, {
+          padding: { top: 70, bottom: 70, left: 60, right: 60 },
+          maxZoom: 15,
+          duration: 900,
+        });
+      } catch (_) {}
+    }
+  }, [pickupCoord, destCoord, routeCoordinates]);
+
+  // Sync Real-Time Captain / Vehicle Marker with Smooth Heading Orientation
   useEffect(() => {
     const map = mapInstanceRef.current;
     if (!map) return;
@@ -311,10 +348,13 @@ export const OlaMapView = ({
     if (vehiclePosition && Array.isArray(vehiclePosition)) {
       if (!vehicleMarkerRef.current) {
         const el = document.createElement('div');
-        el.className = 'ola-vehicle-marker flex items-center justify-center transition-transform duration-300';
+        el.className = 'rapido-captain-marker flex items-center justify-center select-none';
         el.innerHTML = `
-          <div class="w-10 h-10 rounded-full bg-white shadow-xl border-2 border-emerald-500 flex items-center justify-center text-xl transform transition-transform">
-            ${vehicleIcon}
+          <div class="relative flex items-center justify-center">
+            <span class="animate-ping absolute inline-flex h-12 w-12 rounded-full bg-amber-400 opacity-60"></span>
+            <div class="vehicle-inner w-11 h-11 rounded-full bg-amber-400 shadow-2xl border-2 border-white flex items-center justify-center text-2xl transform transition-transform duration-200 filter drop-shadow-lg">
+              ${vehicleIcon}
+            </div>
           </div>
         `;
         vehicleMarkerRef.current = new maplibregl.Marker({ element: el })
@@ -322,8 +362,8 @@ export const OlaMapView = ({
           .addTo(map);
       } else {
         vehicleMarkerRef.current.setLngLat(vehiclePosition);
-        const inner = vehicleMarkerRef.current.getElement().querySelector('div');
-        if (inner && vehicleHeading) {
+        const inner = vehicleMarkerRef.current.getElement().querySelector('.vehicle-inner');
+        if (inner && vehicleHeading !== undefined) {
           inner.style.transform = `rotate(${vehicleHeading}deg)`;
         }
       }
@@ -333,10 +373,10 @@ export const OlaMapView = ({
     }
   }, [vehiclePosition, vehicleIcon, vehicleHeading]);
 
-  // Add surrounding nearby drivers for realistic ride hailing experience
+  // Add surrounding nearby drivers when idle for authentic ride hailing feel
   useEffect(() => {
     const map = mapInstanceRef.current;
-    if (!map || vehiclePosition) return; // Don't show random idle drivers during an active trip
+    if (!map || vehiclePosition) return;
 
     // Clean prior idle drivers
     surroundingDriversRef.current.forEach((m) => m.remove());
@@ -346,16 +386,23 @@ export const OlaMapView = ({
     const baseLat = pickupCoord ? pickupCoord[1] : center[1];
 
     const driverOffsets = [
-      { lng: 0.003, lat: 0.002, icon: '🛵' },
-      { lng: -0.0025, lat: 0.0035, icon: '🛺' },
-      { lng: 0.004, lat: -0.003, icon: '🚗' },
-      { lng: -0.0035, lat: -0.002, icon: '🛵' },
+      { lng: 0.003, lat: 0.002, icon: '🛵', label: '2 min' },
+      { lng: -0.0025, lat: 0.0035, icon: '🛺', label: '3 min' },
+      { lng: 0.004, lat: -0.003, icon: '🚗', label: '4 min' },
+      { lng: -0.0035, lat: -0.002, icon: '🛵', label: '1 min' },
     ];
 
     driverOffsets.forEach((d) => {
       const el = document.createElement('div');
-      el.className = 'text-base p-1 bg-white/90 rounded-full shadow border border-slate-200 animate-pulse';
-      el.innerText = d.icon;
+      el.className = 'flex flex-col items-center select-none cursor-pointer hover:scale-110 transition-transform';
+      el.innerHTML = `
+        <div class="p-1.5 bg-white/95 rounded-full shadow-md border border-slate-200 flex items-center justify-center text-base">
+          ${d.icon}
+        </div>
+        <span class="text-[8px] font-black bg-slate-900/80 text-amber-300 px-1 rounded shadow mt-0.5">
+          ${d.label}
+        </span>
+      `;
       const marker = new maplibregl.Marker({ element: el })
         .setLngLat([baseLng + d.lng, baseLat + d.lat])
         .addTo(map);
@@ -368,7 +415,7 @@ export const OlaMapView = ({
     };
   }, [pickupCoord, center, vehiclePosition]);
 
-  // Locate Me handler
+  // Locate Me / Navigation Button handler
   const handleLocateMe = () => {
     if (!navigator.geolocation) {
       alert('Geolocation is not supported by your browser');
@@ -385,8 +432,9 @@ export const OlaMapView = ({
         if (mapInstanceRef.current) {
           mapInstanceRef.current.flyTo({
             center: [lng, lat],
-            zoom: 15,
-            duration: 1200,
+            zoom: 16,
+            pitch: 25,
+            duration: 1400,
           });
         }
 
@@ -396,7 +444,7 @@ export const OlaMapView = ({
           onLocationFound({
             lat,
             lng,
-            name: placeInfo.name,
+            name: placeInfo.name || placeInfo.formattedAddress || 'My Current Location',
             address: placeInfo.formattedAddress,
           });
         }
@@ -409,6 +457,7 @@ export const OlaMapView = ({
           mapInstanceRef.current.flyTo({
             center: [DEFAULT_COORDINATES.lng, DEFAULT_COORDINATES.lat],
             zoom: 15,
+            duration: 1200,
           });
         }
       },
@@ -430,30 +479,37 @@ export const OlaMapView = ({
       {/* Map Container */}
       <div ref={mapContainerRef} className="absolute inset-0 w-full h-full" />
 
+      {/* Current Style Toast Badge on Top Left */}
+      <div className="absolute top-3 left-3 z-10 pointer-events-none">
+        <div className="bg-slate-950/80 backdrop-blur-md text-white text-[10px] font-black px-2.5 py-1 rounded-full border border-slate-700/60 shadow-lg flex items-center gap-1.5">
+          <span>{styleBadge}</span>
+        </div>
+      </div>
+
       {/* Controls: Zoom, Locate Me, Theme */}
       {showControls && (
         <div className="absolute right-3 top-3 z-10 flex flex-col gap-2">
-          {/* Locate Me */}
+          {/* Locate Me / Navigation Button */}
           <button
             onClick={handleLocateMe}
             disabled={isLocating}
-            title="Locate my position with GPS"
-            className="w-9 h-9 rounded-xl bg-white shadow-md border border-slate-200 flex items-center justify-center text-slate-700 hover:bg-slate-50 active:scale-95 transition"
+            title="Navigate to my current GPS location"
+            className="w-10 h-10 rounded-2xl bg-white/95 backdrop-blur-md shadow-xl border border-slate-200/90 flex items-center justify-center text-slate-800 hover:bg-white active:scale-90 transition-all cursor-pointer"
           >
-            <Navigation className={`w-4 h-4 text-blue-600 ${isLocating ? 'animate-spin' : ''}`} />
+            <Navigation className={`w-4 h-4 text-emerald-600 fill-emerald-600 ${isLocating ? 'animate-spin' : ''}`} />
           </button>
 
-          {/* Theme switcher */}
+          {/* Theme / Tile switcher (Standard -> Satellite -> Dark) */}
           {onThemeChange && (
             <button
               onClick={() => {
                 const next = mapTheme === 'standard' ? 'satellite' : mapTheme === 'satellite' ? 'dark' : 'standard';
                 onThemeChange(next);
               }}
-              title="Toggle Map Style (Standard, Satellite, Dark)"
-              className="w-9 h-9 rounded-xl bg-white shadow-md border border-slate-200 flex items-center justify-center text-slate-700 hover:bg-slate-50 active:scale-95 transition"
+              title="Switch Map Tiles (Standard, Satellite, Dark)"
+              className="w-10 h-10 rounded-2xl bg-white/95 backdrop-blur-md shadow-xl border border-slate-200/90 flex items-center justify-center text-slate-800 hover:bg-white active:scale-90 transition-all cursor-pointer"
             >
-              <Layers className="w-4 h-4 text-emerald-600" />
+              <Layers className="w-4 h-4 text-blue-600" />
             </button>
           )}
 
@@ -461,21 +517,23 @@ export const OlaMapView = ({
           <button
             onClick={handleZoomIn}
             title="Zoom In"
-            className="w-9 h-9 rounded-xl bg-white shadow-md border border-slate-200 flex items-center justify-center text-slate-700 hover:bg-slate-50 active:scale-95 transition"
+            className="w-10 h-10 rounded-2xl bg-white/95 backdrop-blur-md shadow-xl border border-slate-200/90 flex items-center justify-center text-slate-800 hover:bg-white active:scale-90 transition-all cursor-pointer"
           >
-            <Plus className="w-4 h-4" />
+            <Plus className="w-4 h-4 stroke-[2.5]" />
           </button>
 
           {/* Zoom Out */}
           <button
             onClick={handleZoomOut}
             title="Zoom Out"
-            className="w-9 h-9 rounded-xl bg-white shadow-md border border-slate-200 flex items-center justify-center text-slate-700 hover:bg-slate-50 active:scale-95 transition"
+            className="w-10 h-10 rounded-2xl bg-white/95 backdrop-blur-md shadow-xl border border-slate-200/90 flex items-center justify-center text-slate-800 hover:bg-white active:scale-90 transition-all cursor-pointer"
           >
-            <Minus className="w-4 h-4" />
+            <Minus className="w-4 h-4 stroke-[2.5]" />
           </button>
         </div>
       )}
     </div>
   );
 };
+
+export default OlaMapView;
