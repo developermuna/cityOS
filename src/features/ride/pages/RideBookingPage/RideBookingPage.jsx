@@ -567,7 +567,7 @@ export const RideBookingPage = ({ pickup, destination, pickupCoord, destCoord, o
         </div>
       ) : (
         /* LIVE DRIVER & RIDE TRACKING SHEET when BOOKED */
-        <div className="bg-white rounded-t-[32px] border-t border-slate-200 -mt-6 relative z-30 flex-grow flex flex-col space-y-3 p-4">
+        <div className="bg-white rounded-t-[32px] border-t border-slate-200 -mt-6 relative z-30 flex flex-col space-y-3 p-4 pb-4">
           <div className="w-10 h-1 bg-slate-300 rounded-full mx-auto -mt-1" />
 
           {/* SINGLE INTEGRATED PRIMARY DRIVER CARD */}
@@ -857,12 +857,24 @@ export const RideBookingPage = ({ pickup, destination, pickupCoord, destCoord, o
                             <img src="https://upload.wikimedia.org/wikipedia/commons/7/71/PhonePe_Logo.svg" alt="PhonePe" className="h-4" />
                           </div>
                         </div>
-                        <button 
-                          onClick={() => setIsPaymentModalOpen(false)}
-                          className="w-full py-2.5 bg-slate-900 text-white rounded-xl text-[11px] font-black uppercase tracking-wider"
-                        >
-                          Done
-                        </button>
+                        <div className="flex flex-col gap-2 w-full">
+                          <button 
+                            onClick={() => {
+                              const amount = (parseInt((rideOptions.find(r => r.id === selectedRide)?.price || '12').replace('₹', ''), 10) + addedTip);
+                              window.location.href = `upi://pay?pa=gocityos@bank&pn=GoCityOS&am=${amount}&cu=INR`;
+                            }}
+                            className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black flex items-center justify-center gap-2 transition-all active:scale-95 shadow-md"
+                          >
+                            <Plus size={16} className="rotate-45" />
+                            <span>Pay via UPI App</span>
+                          </button>
+                          <button 
+                            onClick={() => setIsPaymentModalOpen(false)}
+                            className="w-full py-3 bg-slate-900 text-white rounded-xl text-[11px] font-black uppercase tracking-wider hover:bg-slate-800 transition-colors"
+                          >
+                            Done
+                          </button>
+                        </div>
                       </div>
                     )}
                   </div>
@@ -1201,7 +1213,7 @@ export const RideBookingPage = ({ pickup, destination, pickupCoord, destCoord, o
 
                 <div className="flex justify-between items-center">
                   <span className="font-bold text-slate-500">Emergency Contact:</span>
-                  <span className="font-mono font-black text-slate-900">Masked for Privacy</span>
+                  <span className="font-mono font-black text-slate-900">+91 98XXX X4321</span>
                 </div>
               </div>
             </div>
@@ -1213,7 +1225,7 @@ export const RideBookingPage = ({ pickup, destination, pickupCoord, destCoord, o
                 onClick={() => {
                   setIsDriverProfileOpen(false);
                   window.location.href = 'tel:1122334455';
-                  if (showToast) showToast('📞 Opening dialpad with 1122334455...');
+                  if (showToast) showToast(`📞 Opening secure line for ${activeDriver.name}...`);
                 }}
                 className="py-3 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-black flex items-center justify-center gap-2 transition-all cursor-pointer shadow-md active:scale-95"
               >
@@ -1897,14 +1909,14 @@ export const RideBookingPage = ({ pickup, destination, pickupCoord, destCoord, o
       {/* 10. RAPIDO REAL-TIME CAPTAIN ASSIGNING MODAL / OVERLAY */}
       {isSearchingCaptain && (
         <div 
-          className="fixed inset-0 bg-white z-50 flex flex-col items-center justify-between p-4 sm:p-6 transition-all duration-300 animate-in fade-in"
+          className="fixed inset-0 bg-white/95 backdrop-blur-md z-50 flex flex-col items-center justify-between p-4 sm:p-6 transition-all duration-300 animate-in fade-in"
           aria-modal="true"
           role="dialog"
         >
           {/* Top Bar */}
           <div className="w-full max-w-[440px] flex items-center justify-between pt-2">
             <div className="flex items-center gap-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-amber-500 animate-ping" />
+              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping" />
               <span className="text-xs font-black text-slate-900 uppercase tracking-widest">Captain Assigning</span>
             </div>
 
@@ -1925,12 +1937,12 @@ export const RideBookingPage = ({ pickup, destination, pickupCoord, destCoord, o
           <div className="w-full max-w-[440px] flex flex-col items-center justify-center text-center space-y-5 my-auto py-4">
             {/* Animated Concentric Radar Rings */}
             <div className="relative flex items-center justify-center my-4">
-              <div className="absolute w-56 h-56 rounded-full border border-amber-500/10 animate-ping duration-1000" />
-              <div className="absolute w-44 h-44 rounded-full border-2 border-amber-500/20 animate-pulse duration-700" />
-              <div className="absolute w-32 h-32 rounded-full bg-amber-500/5 border border-amber-500/30" />
+              <div className="absolute w-56 h-56 rounded-full border border-emerald-500/10 animate-ping duration-1000" />
+              <div className="absolute w-44 h-44 rounded-full border-2 border-emerald-500/20 animate-pulse duration-700" />
+              <div className="absolute w-32 h-32 rounded-full bg-emerald-500/5 border border-emerald-500/30" />
               
               {/* Center Vehicle Pulsing Pin */}
-              <div className="w-20 h-20 rounded-full bg-[#FFC107] border-4 border-white shadow-xl flex items-center justify-center text-3xl text-slate-950 z-10 animate-bounce">
+              <div className="w-20 h-20 rounded-full bg-white border-4 border-emerald-500 shadow-xl flex items-center justify-center text-3xl text-slate-950 z-10 animate-bounce">
                 {vehicleIcon}
               </div>
             </div>
@@ -1956,7 +1968,7 @@ export const RideBookingPage = ({ pickup, destination, pickupCoord, destCoord, o
             {/* Animated Progress Bar */}
             <div className="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden border border-slate-200">
               <div 
-                className="bg-[#FFC107] h-full transition-all duration-300 ease-out shadow-sm"
+                className="bg-emerald-500 h-full transition-all duration-300 ease-out shadow-sm"
                 style={{ width: `${searchProgress}%` }}
               />
             </div>

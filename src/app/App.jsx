@@ -51,6 +51,8 @@ export default function App() {
   const [isFilterDrawerOpen, setIsFilterDrawerOpen] = useState(false);
   const [isBookingMode, setIsBookingMode] = useState(false);
   const [savedAddresses, setSavedAddresses] = useState([]);
+  const [ridePickup, setRidePickup] = useState('Current Location: Rayagada Station Road');
+  const [rideDestination, setRideDestination] = useState('');
 
   // Demo Wishlist Data
   const [wishlistItems, setWishlistItems] = useState([
@@ -237,6 +239,10 @@ export default function App() {
             setIsCategoriesView(false);
           }}
           onBoltOrderNow={(banner) => showToast(`⚡ ${banner?.title || 'Bolt'}: ${banner?.highlight || '15-min delivery ready!'}`)}
+          ridePickup={ridePickup}
+          setRidePickup={setRidePickup}
+          rideDestination={rideDestination}
+          setRideDestination={setRideDestination}
         >
           {isCategoriesView ? (
             <CategoriesPage 
@@ -272,6 +278,10 @@ export default function App() {
               onBookingModeChange={setIsBookingMode}
               savedAddresses={savedAddresses}
               onToggleFavorite={(addr) => handleToggleWishlist(addr, true)}
+              ridePickup={ridePickup}
+              setRidePickup={setRidePickup}
+              rideDestination={rideDestination}
+              setRideDestination={setRideDestination}
             />
           ) : activeTab === 'travel' ? (
             <TravelHome onTabChange={setActiveTab} showToast={showToast} />

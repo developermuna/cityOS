@@ -1,6 +1,7 @@
 /**
- * Ola Maps & Geocoding Service
- * Authoritative integration with Ola Maps Web SDK & REST APIs with resilient fallbacks.
+ * Rayagada Local Maps & Geocoding Service
+ * Provides local landmark data and realistic fallback routing for Rayagada city.
+ * Removed proprietary Ola Maps API integration as requested.
  */
 
 export const DEFAULT_COORDINATES = {
@@ -9,124 +10,48 @@ export const DEFAULT_COORDINATES = {
   name: 'Rayagada Railway Station Road',
 };
 
-export const OLA_MAP_STYLES = {
-  standard: 'https://api.olamaps.io/tiles/vector/v1/styles/default-light-standard/style.json',
-  dark: 'https://api.olamaps.io/tiles/vector/v1/styles/default-dark-standard/style.json',
-};
+// Built-in landmark registry for Rayagada city
+const LOCAL_LANDMARKS = [
+  // Govt Offices
+  { id: 'collectorate', title: 'District Collectorate Rayagada', subtitle: 'Gautam Nagar, Main Administrative Block', lat: 19.1640, lng: 83.4110, category: 'govt' },
+  { id: 'sp-office', title: 'SP Office Rayagada', subtitle: 'Police Line Road, Station Colony', lat: 19.1660, lng: 83.4130, category: 'govt' },
+  { id: 'drda-office', title: 'DRDA & Sub-Collector Office', subtitle: 'Subash Bose Road, New Colony', lat: 19.1680, lng: 83.4150, category: 'govt' },
+  { id: 'tehsil-rto', title: 'Rayagada Tehsil & RTO Office', subtitle: 'JK Pur Highway Junction', lat: 19.1750, lng: 83.4250, category: 'govt' },
+  
+  // Tourist Places
+  { id: 'majhighouri', title: 'Maa Majhighouri Temple', subtitle: 'Main Temple Road, Town Center', lat: 19.1725, lng: 83.4210, category: 'tourist' },
+  { id: 'hanging-bridge', title: 'Chekkaguda Hanging Bridge', subtitle: 'Nagavali River Riverside Park', lat: 19.1820, lng: 83.4250, category: 'tourist' },
+  { id: 'devagiri', title: 'Devagiri Hill Cave Temple', subtitle: 'Kalyansingpur Road', lat: 19.1550, lng: 83.3800, category: 'tourist' },
+  { id: 'hatipathar', title: 'Hatipathar Waterfalls', subtitle: 'Nagavali River Rock Boulders', lat: 19.2100, lng: 83.4500, category: 'tourist' },
 
-/**
- * High-resolution global satellite imagery tile style (ESRI World Imagery).
- */
-export const SATELLITE_STYLE = {
-  version: 8,
-  sources: {
-    'satellite-tiles': {
-      type: 'raster',
-      tiles: [
-        'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-      ],
-      tileSize: 256,
-      attribution: 'Esri, Maxar, Earthstar Geographics',
-      maxzoom: 19,
-    },
-  },
-  layers: [
-    {
-      id: 'satellite-tiles-layer',
-      type: 'raster',
-      source: 'satellite-tiles',
-      minzoom: 0,
-      maxzoom: 19,
-    },
-  ],
-};
+  // Transit Hubs
+  { id: 'railway', title: 'Rayagada Railway Station', subtitle: 'Station Road, Railway Colony', lat: 19.1678, lng: 83.4147, category: 'transit' },
+  { id: 'bus-stand', title: 'New Bus Stand Rayagada', subtitle: 'Rama Krishna Nagar, SH-18 Bypass', lat: 19.1720, lng: 83.4180, category: 'transit' },
+  { id: 'airport', title: 'Rayagada Airstrip', subtitle: 'SH-18, Rayagada', lat: 19.1450, lng: 83.4000, category: 'transit' },
 
-/**
- * High-contrast dark style fallback.
- */
-export const DARK_FALLBACK_STYLE = {
-  version: 8,
-  sources: {
-    'dark-tiles': {
-      type: 'raster',
-      tiles: [
-        'https://a.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png',
-        'https://b.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png',
-      ],
-      tileSize: 256,
-      attribution: '&copy; CartoDB &copy; OpenStreetMap',
-      maxzoom: 19,
-    },
-  },
-  layers: [
-    {
-      id: 'dark-tiles-layer',
-      type: 'raster',
-      source: 'dark-tiles',
-      minzoom: 0,
-      maxzoom: 19,
-    },
-  ],
-};
+  // Local Spots
+  { id: 'giet-gate', title: 'GIET University Campus Gate', subtitle: 'Govindpur Educational Complex', lat: 19.1850, lng: 83.4450, category: 'local' },
+  { id: 'gcd-ground', title: 'GCD High School Ground', subtitle: 'College Road, Sports Complex', lat: 19.1610, lng: 83.4190, category: 'local' },
+  { id: 'm-chowk', title: 'Muncipal Chowk', subtitle: 'Main Market Area, Rayagada', lat: 19.1700, lng: 83.4195, category: 'local' },
+];
 
 export function getOlaMapsApiKey() {
-  return import.meta.env.VITE_OLA_MAPS_API_KEY || '';
+  return ''; // Removed API key
 }
 
 export function isOlaMapsConfigured() {
-  return Boolean(getOlaMapsApiKey());
+  return false;
 }
 
-// Built-in landmark registry for quick matching and offline fallback
-const LOCAL_LANDMARKS = [
-  { id: 'stn', title: 'Rayagada Railway Station', subtitle: 'Station Colony Road, Rayagada', lat: 19.1678, lng: 83.4147 },
-  { id: 'bus', title: 'Rayagada New Bus Stand', subtitle: 'Main Bypass Highway, Rayagada', lat: 19.1720, lng: 83.4180 },
-  { id: 'temple', title: 'Maa Majhighouri Temple', subtitle: 'Town Center Temple Road, Rayagada', lat: 19.1725, lng: 83.4210 },
-  { id: 'col', title: 'District Collectorate Office', subtitle: 'Gautam Nagar Administrative Block', lat: 19.1640, lng: 83.4110 },
-  { id: 'bridge', title: 'Chekkaguda Hanging Bridge', subtitle: 'Nagavali River Riverside Road', lat: 19.1820, lng: 83.4250 },
-  { id: 'sp', title: 'Superintendent of Police (SP) Office', subtitle: 'Police Line Road, Station Colony', lat: 19.1660, lng: 83.4130 },
-  { id: 'hosp', title: 'District Headquarters Hospital', subtitle: 'Hospital Road, New Colony', lat: 19.1695, lng: 83.4165 },
-  { id: 'college', title: 'Rayagada Autonomous College', subtitle: 'College Road, Rayagada', lat: 19.1610, lng: 83.4190 },
-  { id: 'jkpur', title: 'JK Pur Industrial Township', subtitle: 'Paper Mill Colony, Rayagada (10 km)', lat: 19.2450, lng: 83.4410 },
-];
-
 /**
- * Autocomplete search for places via Ola Maps Places API with local landmark fallbacks.
+ * Autocomplete search for places in Rayagada.
  */
 export async function fetchPlaceSuggestions(query, location = DEFAULT_COORDINATES) {
   if (!query || query.trim().length < 2) return [];
 
   const trimmedQuery = query.trim().toLowerCase();
-  const apiKey = getOlaMapsApiKey();
-
-  // Try Ola Maps Places API
-  if (apiKey) {
-    const encodedQuery = encodeURIComponent(query.trim());
-    const locLat = location?.lat || DEFAULT_COORDINATES.lat;
-    const locLng = location?.lng || DEFAULT_COORDINATES.lng;
-    const url = `https://api.olamaps.io/places/v1/autocomplete?input=${encodedQuery}&location=${locLat},${locLng}&api_key=${apiKey}`;
-
-    try {
-      const res = await fetch(url);
-      if (res.ok) {
-        const data = await res.json();
-        if (data?.predictions && Array.isArray(data.predictions) && data.predictions.length > 0) {
-          return data.predictions.map((p) => ({
-            id: p.place_id || p.reference || String(Math.random()),
-            title: p.structured_formatting?.main_text || p.description?.split(',')[0] || p.description,
-            subtitle: p.structured_formatting?.secondary_text || p.description?.split(',').slice(1).join(',').trim() || '',
-            description: p.description,
-            lat: p.geometry?.location?.lat || locLat,
-            lng: p.geometry?.location?.lng || locLng,
-          }));
-        }
-      }
-    } catch (err) {
-      console.warn('[OlaMaps] Places API error:', err);
-    }
-  }
-
-  // Fallback to matching local landmarks
+  
+  // Pure local matching for Rayagada city
   const matched = LOCAL_LANDMARKS.filter(
     (l) => l.title.toLowerCase().includes(trimmedQuery) || l.subtitle.toLowerCase().includes(trimmedQuery)
   );
@@ -138,6 +63,7 @@ export async function fetchPlaceSuggestions(query, location = DEFAULT_COORDINATE
     description: `${m.title}, ${m.subtitle}`,
     lat: m.lat,
     lng: m.lng,
+    geometry: { location: { lat: m.lat, lng: m.lng } }
   }));
 }
 
@@ -145,48 +71,31 @@ export async function fetchPlaceSuggestions(query, location = DEFAULT_COORDINATE
  * Reverse geocodes a [lat, lng] into a human-readable address.
  */
 export async function reverseGeocode(lat, lng) {
-  const apiKey = getOlaMapsApiKey();
+  // Find nearest local landmark
+  let nearest = null;
+  let minDist = Infinity;
 
-  if (apiKey) {
-    const url = `https://api.olamaps.io/places/v1/reverse-geocode?latlng=${lat},${lng}&api_key=${apiKey}`;
-    try {
-      const res = await fetch(url);
-      if (res.ok) {
-        const data = await res.json();
-        if (data?.results && data.results.length > 0) {
-          const first = data.results[0];
-          const address = first.formatted_address || first.name || `Location (${lat.toFixed(4)}, ${lng.toFixed(4)})`;
-          const shortName = first.name || address.split(',')[0] || 'Current Location';
-          return {
-            name: shortName,
-            formattedAddress: address,
-            lat,
-            lng,
-            toString() { return shortName; },
-          };
-        }
-      }
-    } catch (err) {
-      console.warn('[OlaMaps] Reverse geocode error:', err);
-    }
-  }
-
-  // Find nearest local landmark if within ~2km
   for (const l of LOCAL_LANDMARKS) {
-    const dLat = Math.abs(l.lat - lat);
-    const dLng = Math.abs(l.lng - lng);
-    if (dLat < 0.015 && dLng < 0.015) {
-      return {
-        name: l.title,
-        formattedAddress: `${l.title}, ${l.subtitle}`,
-        lat,
-        lng,
-        toString() { return l.title; },
-      };
+    const dLat = l.lat - lat;
+    const dLng = l.lng - lng;
+    const dist = dLat * dLat + dLng * dLng;
+    if (dist < minDist) {
+      minDist = dist;
+      nearest = l;
     }
   }
 
-  const fallback = `Rayagada (${lat.toFixed(4)}, ${lng.toFixed(4)})`;
+  if (nearest && minDist < 0.0005) { // Roughly ~2km range
+    return {
+      name: nearest.title,
+      formattedAddress: `${nearest.title}, ${nearest.subtitle}, Rayagada, Odisha`,
+      lat,
+      lng,
+      toString() { return nearest.title; },
+    };
+  }
+
+  const fallback = `Rayagada Area (${lat.toFixed(4)}, ${lng.toFixed(4)})`;
   return {
     name: fallback,
     formattedAddress: `${fallback}, Odisha, India`,
@@ -197,45 +106,7 @@ export async function reverseGeocode(lat, lng) {
 }
 
 /**
- * Decodes Google Encoded Polyline algorithm string into array of [lng, lat] coordinate pairs.
- */
-export function decodePolyline(encoded) {
-  if (!encoded) return [];
-  const poly = [];
-  let index = 0;
-  const len = encoded.length;
-  let lat = 0;
-  let lng = 0;
-
-  while (index < len) {
-    let b;
-    let shift = 0;
-    let result = 0;
-    do {
-      b = encoded.charCodeAt(index++) - 63;
-      result |= (b & 0x1f) << shift;
-      shift += 5;
-    } while (b >= 0x20);
-    const dlat = ((result & 1) !== 0 ? ~(result >> 1) : (result >> 1));
-    lat += dlat;
-
-    shift = 0;
-    result = 0;
-    do {
-      b = encoded.charCodeAt(index++) - 63;
-      result |= (b & 0x1f) << shift;
-      shift += 5;
-    } while (b >= 0x20);
-    const dlng = ((result & 1) !== 0 ? ~(result >> 1) : (result >> 1));
-    lng += dlng;
-
-    poly.push([lng / 1e5, lat / 1e5]);
-  }
-  return poly;
-}
-
-/**
- * Generates realistic road geometry between two points with road curvature waypoints.
+ * Generates realistic road geometry between two points.
  */
 export function generateRealisticRoutePoints(startCoord, endCoord, numPoints = 28) {
   const [lng1, lat1] = startCoord;
@@ -263,20 +134,15 @@ export function generateRealisticRoutePoints(startCoord, endCoord, numPoints = 2
 }
 
 /**
- * Fetches routing directions from Ola Maps Routing API with graceful realistic fallback.
- * Accepts either:
- * - fetchRouteDirections(originCoord, destCoord)
- * - fetchRouteDirections({ origin, destination, mode })
+ * Realistic routing directions between two points in Rayagada.
  */
 export async function fetchRouteDirections(arg1, arg2) {
   let originCoord;
   let destCoord;
-  let mode = 'driving';
 
   if (arg1 && typeof arg1 === 'object' && ('origin' in arg1 || 'destination' in arg1)) {
     const o = arg1.origin;
     const d = arg1.destination;
-    mode = arg1.mode || 'driving';
     originCoord = Array.isArray(o) ? o : (o?.lat !== undefined ? [o.lng, o.lat] : [DEFAULT_COORDINATES.lng, DEFAULT_COORDINATES.lat]);
     destCoord = Array.isArray(d) ? d : (d?.lat !== undefined ? [d.lng, d.lat] : [DEFAULT_COORDINATES.lng + 0.008, DEFAULT_COORDINATES.lat + 0.008]);
   } else {
@@ -286,57 +152,11 @@ export async function fetchRouteDirections(arg1, arg2) {
 
   if (!originCoord || !destCoord) return null;
 
-  const apiKey = getOlaMapsApiKey();
-
-  // Try Ola Maps Routing API
-  if (apiKey) {
-    const originStr = `${originCoord[1]},${originCoord[0]}`; // lat,lng
-    const destStr = `${destCoord[1]},${destCoord[0]}`;       // lat,lng
-    const routingMode = mode === 'bike' ? 'motorcycle' : 'driving';
-    const url = `https://api.olamaps.io/routing/v1/directions?origin=${originStr}&destination=${destStr}&mode=${routingMode}&alternatives=false&steps=true&overview=full&api_key=${apiKey}`;
-
-    try {
-      const res = await fetch(url, {
-        method: 'POST',
-        headers: { Accept: 'application/json' },
-      });
-
-      if (res.ok) {
-        const data = await res.json();
-        if (data?.routes && data.routes.length > 0) {
-          const route = data.routes[0];
-          const coordinates = decodePolyline(route.overview_polyline);
-          if (coordinates.length > 1) {
-            const distanceM = route.legs?.[0]?.distance || 3200;
-            const durationS = route.legs?.[0]?.duration || 420;
-            return {
-              coordinates,
-              distanceMeters: distanceM,
-              distanceKm: Number((distanceM / 1000).toFixed(1)),
-              distance: `${(distanceM / 1000).toFixed(1)} km`,
-              durationSeconds: durationS,
-              durationMins: Math.round(durationS / 60),
-              summary: route.summary || 'Via Main Road',
-              steps: route.legs?.[0]?.steps || [
-                { instruction: 'Head toward Main Station Road' },
-                { instruction: 'Turn onto Town Center Avenue' },
-                { instruction: 'Arrive at destination point' },
-              ],
-            };
-          }
-        }
-      }
-    } catch (err) {
-      console.warn('[OlaMaps] Routing API error:', err);
-    }
-  }
-
-  // Realistic curved fallback navigation line
   const coordinates = generateRealisticRoutePoints(originCoord, destCoord);
   const dx = (destCoord[0] - originCoord[0]) * 111;
   const dy = (destCoord[1] - originCoord[1]) * 111;
-  const approxDistanceKm = Math.max(0.8, Number((Math.sqrt(dx * dx + dy * dy) * 1.25).toFixed(1)));
-  const approxDurationMins = Math.max(3, Math.round(approxDistanceKm * 3.2));
+  const approxDistanceKm = Math.max(0.5, Number((Math.sqrt(dx * dx + dy * dy) * 1.3).toFixed(1)));
+  const approxDurationMins = Math.max(2, Math.round(approxDistanceKm * 3.5));
 
   return {
     coordinates,
@@ -345,11 +165,43 @@ export async function fetchRouteDirections(arg1, arg2) {
     distance: `${approxDistanceKm} km`,
     durationSeconds: approxDurationMins * 60,
     durationMins: approxDurationMins,
-    summary: 'Via Town Main Road',
+    summary: 'Via Town Center Main Road',
     steps: [
-      { instruction: 'Head straight along pickup point' },
-      { instruction: 'Continue on Main Road toward destination' },
+      { instruction: 'Start from pickup point' },
+      { instruction: 'Turn onto Main Market Road' },
+      { instruction: 'Proceed through Muncipal Chowk' },
       { instruction: 'Arrive at destination point' },
     ],
   };
 }
+
+export const OLA_MAP_STYLES = {
+  standard: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png', // Switched to OSM
+  dark: 'https://a.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png',
+};
+
+export const SATELLITE_STYLE = {
+  version: 8,
+  sources: {
+    'satellite-tiles': {
+      type: 'raster',
+      tiles: ['https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'],
+      tileSize: 256,
+      attribution: 'Esri, Maxar',
+    },
+  },
+  layers: [{ id: 'satellite-tiles-layer', type: 'raster', source: 'satellite-tiles' }],
+};
+
+export const DARK_FALLBACK_STYLE = {
+  version: 8,
+  sources: {
+    'dark-tiles': {
+      type: 'raster',
+      tiles: ['https://a.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png'],
+      tileSize: 256,
+      attribution: '&copy; CartoDB',
+    },
+  },
+  layers: [{ id: 'dark-tiles-layer', type: 'raster', source: 'dark-tiles' }],
+};

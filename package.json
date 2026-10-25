@@ -14,7 +14,6 @@
   "dependencies": {
     "lucide-react": "^1.60.0",
     "maplibre-gl": "^6.16.0",
-    "olamaps-web-sdk": "^1.4.0",
     "qrcode.react": "^4.2.0",
     "react": "^19.3.1",
     "react-dom": "^19.3.1"

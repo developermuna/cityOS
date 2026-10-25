@@ -1,28 +1,34 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Heart, MapPin, X, ChevronRight, Navigation } from 'lucide-react';
+import { Heart, ChevronRight } from 'lucide-react';
 import { RideBookingPage } from '../RideBookingPage/RideBookingPage';
 import { OlaMapView } from '@/components/OlaMapView';
-import { fetchPlaceSuggestions, DEFAULT_COORDINATES, reverseGeocode, fetchRouteDirections } from '@/services/olaMapsService';
+import { DEFAULT_COORDINATES, reverseGeocode, fetchRouteDirections } from '@/services/olaMapsService';
 
-export const RideHome = ({ showToast, onBookingModeChange, savedAddresses = [], onToggleFavorite }) => {
-  const [pickupQuery, setPickupQuery] = useState('Current Location: Rayagada Station Road');
-  const [destinationQuery, setDestinationQuery] = useState('');
+export const RideHome = ({ 
+  showToast, 
+  onBookingModeChange, 
+  savedAddresses = [], 
+  onToggleFavorite,
+  ridePickup,
+  setRidePickup,
+  rideDestination,
+  setRideDestination
+}) => {
+  const pickupQuery = ridePickup;
+  const setPickupQuery = setRidePickup;
+  const destinationQuery = rideDestination;
+  const setDestinationQuery = setRideDestination;
+
   const [pickupCoord, setPickupCoord] = useState([83.4147, 19.1678]); // [lng, lat] Station Road
   const [destCoord, setDestCoord] = useState(null); // [lng, lat]
   const [routeCoordinates, setRouteCoordinates] = useState([]);
-  const [routeInfo, setRouteInfo] = useState(null);
-  const [isCalculatingRoute, setIsCalculatingRoute] = useState(false);
   const [isBookingPageOpen, setIsBookingPageOpen] = useState(false);
   const [mapTheme, setMapTheme] = useState('standard');
-  const [isMapZoomed, setIsMapZoomed] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState('all');
-
-  const [pickupSuggestions, setPickupSuggestions] = useState([]);
-  const [destSuggestions, setDestSuggestions] = useState([]);
 
   const placeCategories = [
     { id: 'all', label: 'All', icon: '📍' },
-    { id: 'saved', label: 'Saved Address', icon: '❤️' },
+    { id: 'saved', label: 'Saved Address', icon: '❤️', prominent: true },
     { id: 'govt', label: 'Govt Offices', icon: '🏛️' },
     { id: 'tourist', label: 'Tourist Spots', icon: '🌺' },
     { id: 'nearby', label: 'Nearby Towns', icon: '🏙️' },
@@ -219,61 +225,18 @@ export const RideHome = ({ showToast, onBookingModeChange, savedAddresses = [], 
       )
     : filteredPlaces;
 
-  // Real-time Autocomplete Logic powered by Ola Maps Places API
-  useEffect(() => {
-    let isCancelled = false;
-    const timer = setTimeout(async () => {
-      if (pickupQuery.length > 2 && !pickupQuery.startsWith('Current Location')) {
-        const results = await fetchPlaceSuggestions(pickupQuery, {
-          location: { lat: DEFAULT_COORDINATES.lat, lng: DEFAULT_COORDINATES.lng },
-        });
-        if (!isCancelled) setPickupSuggestions(results);
-      } else {
-        if (!isCancelled) setPickupSuggestions([]);
-      }
-    }, 280);
-
-    return () => {
-      isCancelled = true;
-      clearTimeout(timer);
-    };
-  }, [pickupQuery]);
-
-  useEffect(() => {
-    let isCancelled = false;
-    const timer = setTimeout(async () => {
-      if (destinationQuery.length > 2) {
-        const results = await fetchPlaceSuggestions(destinationQuery, {
-          location: { lat: DEFAULT_COORDINATES.lat, lng: DEFAULT_COORDINATES.lng },
-        });
-        if (!isCancelled) setDestSuggestions(results);
-      } else {
-        if (!isCancelled) setDestSuggestions([]);
-      }
-    }, 280);
-
-    return () => {
-      isCancelled = true;
-      clearTimeout(timer);
-    };
-  }, [destinationQuery]);
-
   // Automatically calculate route and polyline coordinates between pickup and destination
   useEffect(() => {
     if (!pickupCoord || !destCoord) {
       setRouteCoordinates([]);
-      setRouteInfo(null);
       return;
     }
 
     let isCancelled = false;
     const calculateRoute = async () => {
-      setIsCalculatingRoute(true);
       const dir = await fetchRouteDirections(pickupCoord, destCoord);
       if (!isCancelled && dir) {
         setRouteCoordinates(dir.coordinates);
-        setRouteInfo(dir);
-        setIsCalculatingRoute(false);
       }
     };
 
@@ -308,34 +271,7 @@ export const RideHome = ({ showToast, onBookingModeChange, savedAddresses = [], 
     }
   }, [isReadyForBooking, onBookingModeChange]);
 
-  const handleLocateMe = () => {
-    if (showToast) showToast('🛰️ Fetching exact GPS location via Ola Maps...');
-    if (!navigator.geolocation) {
-      setPickupQuery('Rayagada Railway Station Road');
-      setPickupCoord([DEFAULT_COORDINATES.lng, DEFAULT_COORDINATES.lat]);
-      if (showToast) showToast('📍 Location pinned to Station Road');
-      return;
-    }
 
-    navigator.geolocation.getCurrentPosition(
-      async (pos) => {
-        const lat = pos.coords.latitude;
-        const lng = pos.coords.longitude;
-        setPickupCoord([lng, lat]);
-        const addr = await reverseGeocode(lat, lng);
-        const resolvedName = addr?.name || addr?.formattedAddress || 'My Current Location';
-        setPickupQuery(resolvedName);
-        if (showToast) showToast(`📍 Locked: ${resolvedName}`);
-      },
-      (err) => {
-        console.warn('Geolocation error:', err);
-        setPickupQuery('Rayagada Railway Station Road');
-        setPickupCoord([DEFAULT_COORDINATES.lng, DEFAULT_COORDINATES.lat]);
-        if (showToast) showToast('📍 Defaulted to Station Road (GPS Permission Denied)');
-      },
-      { timeout: 8000, enableHighAccuracy: true }
-    );
-  };
 
   const exploreModes = [
     { id: 'parcel', label: 'Parcel on Bike', icon: '📦', badge: 'Fast' },
@@ -381,159 +317,7 @@ export const RideHome = ({ showToast, onBookingModeChange, savedAddresses = [], 
 
       <div className="px-4 space-y-4 -mt-2 relative z-30">
         {/* 2. Unified From & To Route Card with Connecting Vertical Line */}
-        <div className="bg-white/90 backdrop-blur-md p-3 rounded-2xl shadow-md border border-slate-200/80 space-y-2 relative">
-          {/* Pickup Input ("From") */}
-          <div className="flex flex-col gap-1 relative">
-            <div className="flex items-center gap-3">
-              <div 
-                onClick={handleLocateMe}
-                className="w-10 h-10 rounded-xl bg-emerald-50 hover:bg-emerald-100 flex items-center justify-center text-emerald-600 shrink-0 cursor-pointer transition-colors shadow-2xs"
-                title="Click to set current location"
-              >
-                <MapPin size={18} />
-              </div>
-              <div className="flex flex-col flex-grow min-w-0">
-                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">FROM</span>
-                <input 
-                  type="text"
-                  value={pickupQuery}
-                  onChange={(e) => setPickupQuery(e.target.value)}
-                  placeholder="Current Location in Rayagada..."
-                  className="w-full bg-transparent text-sm font-extrabold text-slate-900 placeholder:text-slate-400 outline-none truncate"
-                />
-              </div>
-              {pickupQuery && (
-                <button 
-                  onClick={() => setPickupQuery('')}
-                  className="p-1 rounded-full text-slate-400 hover:text-slate-700 shrink-0"
-                >
-                  <X size={16} />
-                </button>
-              )}
-            </div>
 
-            {/* Pickup Suggestions Dropdown */}
-            {pickupSuggestions.length > 0 && (
-              <div className="absolute top-full left-0 right-0 mt-1 bg-white rounded-xl shadow-xl border border-slate-100 z-[100] max-h-48 overflow-y-auto no-scrollbar">
-                {pickupSuggestions.map(s => (
-                  <div 
-                    key={s.id} 
-                    onClick={() => { 
-                      setPickupQuery(s.title); 
-                      if (s.geometry?.lng && s.geometry?.lat) {
-                        setPickupCoord([s.geometry.lng, s.geometry.lat]);
-                      }
-                      setPickupSuggestions([]); 
-                    }}
-                    className="p-3 hover:bg-slate-50 cursor-pointer border-b border-slate-50 last:border-none"
-                  >
-                    <p className="text-xs font-black text-slate-900">{s.title}</p>
-                    <p className="text-[10px] font-bold text-slate-400 truncate">{s.subtitle}</p>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Small Divider Line between From & To */}
-          <div className="ml-[19px] w-[2px] h-4 bg-slate-300 border-dashed border-l-2" />
-
-          {/* Destination Input ("To") */}
-          <div className="flex flex-col gap-1 relative">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center text-amber-600 shrink-0 shadow-2xs">
-                <Search size={18} />
-              </div>
-              <div className="flex flex-col flex-grow min-w-0">
-                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">TO</span>
-                <input 
-                  type="text"
-                  value={destinationQuery}
-                  onChange={(e) => setDestinationQuery(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' && destinationQuery.trim()) {
-                      handleProceedToBooking(destinationQuery, destCoord);
-                    }
-                  }}
-                  placeholder="Search Govt offices, Tourist spots, Bus stand..."
-                  className="w-full bg-transparent text-sm font-extrabold text-slate-900 placeholder:text-slate-400 outline-none truncate"
-                />
-              </div>
-              {destinationQuery && (
-                <button 
-                  onClick={() => {
-                    setDestinationQuery('');
-                    setDestCoord(null);
-                  }}
-                  className="p-1 rounded-full text-slate-400 hover:text-slate-700 shrink-0"
-                >
-                  <X size={16} />
-                </button>
-              )}
-            </div>
-
-            {/* Destination Suggestions Dropdown */}
-            {destSuggestions.length > 0 && (
-              <div className="absolute top-full left-0 right-0 mt-1 bg-white rounded-xl shadow-xl border border-slate-100 z-[100] max-h-48 overflow-y-auto no-scrollbar">
-                {destSuggestions.map(s => (
-                  <div 
-                    key={s.id} 
-                    onClick={() => { 
-                      const coord = (s.lng && s.lat) ? [s.lng, s.lat] : (s.geometry?.lng && s.geometry?.lat) ? [s.geometry.lng, s.geometry.lat] : [83.4210, 19.1725];
-                      setDestinationQuery(s.title);
-                      setDestCoord(coord);
-                      setDestSuggestions([]);
-                      if (showToast) showToast(`📍 Destination set: ${s.title}`);
-                    }}
-                    className="p-3 hover:bg-slate-50 cursor-pointer border-b border-slate-50 last:border-none"
-                  >
-                    <p className="text-xs font-black text-slate-900">{s.title}</p>
-                    <p className="text-[10px] font-bold text-slate-400 truncate">{s.subtitle}</p>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {/* Live Navigation Route Summary Banner */}
-            {routeInfo && (
-              <div className="mt-2.5 bg-gradient-to-r from-emerald-600 via-teal-700 to-emerald-800 text-white p-3 rounded-xl shadow-md flex items-center justify-between border border-emerald-400/40 animate-in fade-in duration-200">
-                <div className="flex items-center gap-2 min-w-0">
-                  <div className="w-7 h-7 rounded-lg bg-white/20 backdrop-blur-md flex items-center justify-center shrink-0 text-sm">
-                    🛵
-                  </div>
-                  <div className="flex flex-col min-w-0">
-                    <span className="text-[10px] font-black uppercase tracking-wider text-emerald-200">
-                      Route • {routeInfo.distance} (~{routeInfo.durationMins} mins)
-                    </span>
-                    <span className="text-xs font-bold text-white truncate">
-                      Ready to book to {destinationQuery}
-                    </span>
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => handleProceedToBooking(destinationQuery, destCoord)}
-                  className="bg-amber-400 hover:bg-amber-300 active:scale-95 text-slate-950 px-3 py-1.5 rounded-lg text-xs font-black shrink-0 transition-transform shadow flex items-center gap-1 cursor-pointer"
-                >
-                  <span>Select Ride</span>
-                  <ChevronRight size={13} className="stroke-[3]" />
-                </button>
-              </div>
-            )}
-
-            {/* Continue / Find Rides Action Button */}
-            {!routeInfo && destinationQuery.trim().length > 1 && (
-              <button
-                type="button"
-                onClick={() => handleProceedToBooking(destinationQuery, destCoord)}
-                className="w-full mt-2 py-2 px-4 bg-emerald-600 hover:bg-emerald-700 active:scale-[0.99] text-white text-xs font-black rounded-xl transition flex items-center justify-center gap-2 shadow-sm cursor-pointer"
-              >
-                <span>Find Rides to {destinationQuery.length > 25 ? destinationQuery.substring(0, 25) + '...' : destinationQuery}</span>
-                <ChevronRight size={15} />
-              </button>
-            )}
-          </div>
-        </div>
 
         {/* 3. Rayagada Place Category Filter Pills */}
         <div className="space-y-2">
@@ -557,6 +341,8 @@ export const RideHome = ({ showToast, onBookingModeChange, savedAddresses = [], 
                   className={`px-3 py-1.5 rounded-full text-xs font-black shrink-0 transition-all cursor-pointer flex items-center gap-1 shadow-2xs ${
                     isActive
                       ? 'bg-slate-900 text-white shadow-md'
+                      : cat.prominent 
+                      ? 'bg-rose-50 text-rose-700 border border-rose-100 hover:bg-rose-100'
                       : 'bg-white/90 text-slate-700 hover:bg-slate-100 border border-slate-200'
                   }`}
                 >
@@ -582,9 +368,7 @@ export const RideHome = ({ showToast, onBookingModeChange, savedAddresses = [], 
                     key={place.id}
                     onClick={() => {
                       const coord = (place.lng && place.lat) ? [place.lng, place.lat] : [83.4210, 19.1725];
-                      setDestinationQuery(place.title);
-                      setDestCoord(coord);
-                      if (showToast) showToast(`📍 Destination selected: ${place.title}`);
+                      handleProceedToBooking(place.title, coord);
                     }}
                     className="flex items-center justify-between p-3 hover:bg-amber-50/50 transition-colors cursor-pointer group"
                   >

@@ -15,6 +15,10 @@ export const PageLayout = ({
   onLikeClick,
   onBoltOrderNow,
   hideTopSection = false,
+  ridePickup,
+  setRidePickup,
+  rideDestination,
+  setRideDestination,
   children 
 }) => {
   const currentTheme = getCategoryTheme(activeTab);
@@ -37,6 +41,10 @@ export const PageLayout = ({
           onLikeClick={onLikeClick}
           onBoltOrderNow={onBoltOrderNow}
           onSelectCategory={onSelectCategory}
+          ridePickup={ridePickup}
+          setRidePickup={setRidePickup}
+          rideDestination={rideDestination}
+          setRideDestination={setRideDestination}
         />
       )}
 
