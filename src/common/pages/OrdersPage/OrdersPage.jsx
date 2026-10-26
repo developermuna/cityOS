@@ -5,12 +5,20 @@ import { OrdersBanner } from './OrdersBanner';
 import { OrdersSearchFilters } from './OrdersSearchFilters';
 import { OrderItemCard } from './OrderItemCard';
 import { PackageOpen } from 'lucide-react';
+import { ServiceHistoryPage } from '@/categories/service/history/pages/ServiceHistoryPage';
+import { serviceMarketplaceService } from '@/categories/service/services/serviceMarketplaceService';
+import { ServiceTrackingPage } from '@/categories/service/category-pages/ServiceTrackingPage/ServiceTrackingPage';
+import { RentalHistoryPage } from '@/categories/rent/history/pages/RentalHistoryPage';
+import { rentalMarketplaceService } from '@/categories/rent/services/rentalMarketplaceService';
+import { RentalTrackingPage } from '@/categories/rent/category-pages/RentalTrackingPage/RentalTrackingPage';
 
 export const OrdersPage = ({ 
   activeHub = 'shop', 
   onClose, 
   showToast 
 }) => {
+  const [activeTrackingBooking, setActiveTrackingBooking] = useState(null);
+
   // Normalize hub to match data keys
   const normalizedHub = (() => {
     switch (activeHub) {
@@ -27,6 +35,65 @@ export const OrdersPage = ({
       default: return 'shop';
     }
   })();
+
+  if (normalizedHub === 'service') {
+    if (activeTrackingBooking) {
+      return (
+        <div className="fixed inset-0 z-[100] bg-white overflow-y-auto no-scrollbar">
+          <ServiceTrackingPage
+            booking={activeTrackingBooking}
+            onCancelBooking={(id, reason) => {
+              serviceMarketplaceService.cancelBooking(id, reason);
+              setActiveTrackingBooking(null);
+              if (showToast) showToast('Booking cancelled');
+            }}
+            onGoHome={() => setActiveTrackingBooking(null)}
+            showToast={showToast}
+          />
+        </div>
+      );
+    }
+
+    return (
+      <div className="fixed inset-0 z-[100] bg-[#f7f9f2] flex flex-col font-sans select-none overflow-y-auto no-scrollbar">
+        <ServiceHistoryPage
+          bookings={serviceMarketplaceService.getBookings()}
+          onTrackBooking={(bk) => setActiveTrackingBooking(bk)}
+          onRebook={(bk) => {
+            if (showToast) showToast(`Rebooking initiated for ${bk.serviceTitle}`);
+          }}
+          onBack={onClose}
+          showToast={showToast}
+        />
+      </div>
+    );
+  }
+
+  if (normalizedHub === 'rent') {
+    if (activeTrackingBooking) {
+      return (
+        <div className="fixed inset-0 z-[100] bg-white overflow-y-auto no-scrollbar">
+          <RentalTrackingPage
+            booking={activeTrackingBooking}
+            onBack={() => setActiveTrackingBooking(null)}
+            onCompleteReturn={() => {
+              if (showToast) showToast('Return processed');
+            }}
+            showToast={showToast}
+          />
+        </div>
+      );
+    }
+
+    return (
+      <div className="fixed inset-0 z-[100] bg-[#fff8f5] flex flex-col font-sans select-none overflow-y-auto no-scrollbar">
+        <RentalHistoryPage
+          onTrackBooking={(bk) => setActiveTrackingBooking(bk)}
+          onBack={onClose}
+        />
+      </div>
+    );
+  }
 
   const currentData = ordersData[normalizedHub] || ordersData.shop;
   const [activeFilter, setActiveFilter] = useState('All');

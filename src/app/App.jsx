@@ -33,9 +33,9 @@ import { OrdersPage } from '@/common/pages/OrdersPage/OrdersPage';
 import { featuredRestaurants, store99Items, instamartData } from '@/data/mockData';
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState('ride');
+  const [activeTab, setActiveTab] = useState('cityos');
   const [isCategoriesView, setIsCategoriesView] = useState(false);
-  const [lastHub, setLastHub] = useState('ride');
+  const [lastHub, setLastHub] = useState('cityos');
   const [searchQuery, setSearchQuery] = useState('');
   const [toasts, setToasts] = useState([]);
   const [cartItems, setCartItems] = useState({ 'store-1': 1, 'im-1': 2, 'm1': 1 });
@@ -50,6 +50,8 @@ export default function App() {
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [isFilterDrawerOpen, setIsFilterDrawerOpen] = useState(false);
   const [isBookingMode, setIsBookingMode] = useState(false);
+  const [isServiceSubPage, setIsServiceSubPage] = useState(false);
+  const [isRentSubPage, setIsRentSubPage] = useState(false);
   const [savedAddresses, setSavedAddresses] = useState([]);
   const [ridePickup, setRidePickup] = useState('Current Location: Rayagada Station Road');
   const [rideDestination, setRideDestination] = useState('');
@@ -222,6 +224,8 @@ export default function App() {
             setActiveTab(tab);
             setIsCategoriesView(false);
             setSearchQuery('');
+            setIsServiceSubPage(false);
+            setIsRentSubPage(false);
             if (['shop', 'food', 'grocery', 'service', 'ride', 'travel', 'rent', 'cityos'].includes(tab)) {
               setLastHub(tab);
             }
@@ -232,7 +236,7 @@ export default function App() {
           onLikeClick={() => setIsLikePageOpen(true)}
           searchQuery={searchQuery}
           setSearchQuery={setSearchQuery}
-          hideTopSection={activeTab === 'scenes' || isCategoriesView || isBookingMode}
+          hideTopSection={activeTab === 'scenes' || isCategoriesView || isBookingMode || (activeTab === 'service' && isServiceSubPage) || (activeTab === 'rent' && isRentSubPage)}
           onSelectCategory={(cat) => {
             setSearchQuery(cat.name === 'Corner' ? 'Sweets' : cat.name);
             showToast(`Browsing ${cat.name}`);
@@ -270,7 +274,13 @@ export default function App() {
               showToast={showToast} 
             />
           ) : activeTab === 'service' ? (
-            <ServiceHome onTabChange={setActiveTab} showToast={showToast} onAddToCart={handleAddToCart} />
+            <ServiceHome 
+              onTabChange={setActiveTab} 
+              showToast={showToast} 
+              onAddToCart={handleAddToCart} 
+              searchQuery={searchQuery}
+              onSubPageChange={setIsServiceSubPage}
+            />
           ) : activeTab === 'ride' ? (
             <RideHome 
               onTabChange={setActiveTab} 
@@ -286,7 +296,12 @@ export default function App() {
           ) : activeTab === 'travel' ? (
             <TravelHome onTabChange={setActiveTab} showToast={showToast} />
           ) : activeTab === 'rent' ? (
-            <RentHome onTabChange={setActiveTab} showToast={showToast} />
+            <RentHome 
+              onTabChange={setActiveTab} 
+              showToast={showToast} 
+              searchQuery={searchQuery}
+              onSubPageChange={setIsRentSubPage}
+            />
           ) : activeTab === 'dineout' ? (
             <DineoutHome onTabChange={setActiveTab} showToast={showToast} />
           ) : activeTab === 'scenes' ? (
@@ -435,9 +450,7 @@ export default function App() {
               setIsLikePageOpen(false);
               setIsOrdersOpen(false);
               setSelectedProduct(null);
-              if (activeTab === 'scenes') {
-                setActiveTab(lastHub || 'shop');
-              }
+              setActiveTab('cityos');
             }}
           />
         )}

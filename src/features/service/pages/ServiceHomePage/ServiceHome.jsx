@@ -1,12 +1,15 @@
 import React from 'react';
-import { FirstBannerCard } from '@/features/service/sections/FirstBannerCardSection/FirstBannerCard';
-import { ServiceList } from '@/features/service/sections/ServiceListSection/ServiceList';
+import { ServiceMarketplaceView } from '@/categories/service/index.jsx';
 
-export const ServiceHome = ({ showToast, onAddToCart }) => {
+export const ServiceHome = ({ showToast, onAddToCart, onTabChange, searchQuery, onSubPageChange }) => {
   return (
-    <div className="space-y-6">
-      <FirstBannerCard showToast={showToast} />
-      <ServiceList showToast={showToast} onAddToCart={onAddToCart} />
-    </div>
+    <ServiceMarketplaceView
+      showToast={showToast}
+      onAddToCart={onAddToCart}
+      onTabChange={onTabChange}
+      externalSearchQuery={searchQuery}
+      onSubPageChange={onSubPageChange}
+    />
   );
 };
+

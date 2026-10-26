@@ -49,9 +49,9 @@ export const LayoutHeaderWrapper = ({
 
   return (
     <>
-      {/* 1. TOP NAVIGATION HEADER & LOCATION BAR */}
+      {/* 1. FIXED TOP NAVIGATION HEADER & SEARCH BAR (Locks firmly to top: 0 with navigation button) */}
       <div 
-        className="w-full transition-colors duration-500 select-none backdrop-blur-md"
+        className="sticky top-0 z-50 w-full select-none backdrop-blur-md transition-colors duration-300 shadow-xs"
         style={hubBackgroundStyle}
       >
         <Header
@@ -62,17 +62,8 @@ export const LayoutHeaderWrapper = ({
           onNotificationClick={onNotificationClick}
           themeConfig={currentTheme}
         />
-      </div>
 
-      {/* 2. STICKY SEARCH BAR / RIDE ROUTE INPUTS (70% opacity, locks firmly to top: 0) */}
-      <div 
-        className="sticky top-0 z-50 w-full select-none backdrop-blur-md"
-        style={{
-          ...hubBackgroundStyle,
-          position: 'sticky',
-          top: 0
-        }}
-      >
+        {/* Search Bar / Ride Route Inputs */}
         {activeTab === 'ride' ? (
           <div className="w-full px-4 py-2">
             <div className="bg-white rounded-xl border border-slate-200 p-1.5 space-y-1 shadow-md">
@@ -153,7 +144,7 @@ export const LayoutHeaderWrapper = ({
         )}
       </div>
 
-      {/* 3. PROMOTIONAL AD BANNER (70% opacity, hidden on Ride page) */}
+      {/* 2. PROMOTIONAL AD BANNER (Hidden on Ride page) */}
       {activeTab !== 'ride' && (
         <section 
           className="w-full select-none overflow-hidden backdrop-blur-md"
@@ -164,18 +155,13 @@ export const LayoutHeaderWrapper = ({
         </section>
       )}
 
-      {/* 4. STICKY QUICK CATEGORY CIRCLE BUTTONS (70% opacity, sticks below search bar) */}
-      {/* Hide category circle section on scroll only for ride page */}
+      {/* 3. QUICK CATEGORY CIRCLE BUTTONS */}
       {!(activeTab === 'ride' && isScrolled) && (
         <div 
-          className={`sticky top-[54px] z-40 w-full select-none transition-all duration-300 rounded-b-[24px] overflow-hidden backdrop-blur-md ${
+          className={`w-full select-none transition-all duration-300 rounded-b-[24px] overflow-hidden backdrop-blur-md ${
             isScrolled ? 'shadow-md shadow-black/20' : 'shadow-none'
           }`}
-          style={{
-            ...hubBackgroundStyle,
-            position: 'sticky',
-            top: '54px'
-          }}
+          style={hubBackgroundStyle}
         >
           <nav className="w-full py-1.5 bg-transparent" aria-label="Category Filters">
             <MindCategories 
